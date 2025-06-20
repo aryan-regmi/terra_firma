@@ -1,0 +1,30 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "": {
+            "scaleInDock": 3
+        },
+        "main.tmx#map_00_tileset": {
+            "dynamicWrapping": false
+        }
+    },
+    "last.exportedFilePath": "/home/aryan/Documents/Dev/Rust/terra_firma/assets/maps/map_00",
+    "last.imagePath": "/home/aryan/Documents/Dev/Rust/terra_firma/assets/external/Tech Dungeon Roguelite - Asset Pack (DEMO)",
+    "last.objectTypesPath": "/home/aryan/Documents/Dev/Rust/terra_firma/tiled_types_export.json",
+    "map.lastUsedExportFilter": "All Files (*)",
+    "map.lastUsedFormat": "tmx",
+    "openFiles": [
+    ],
+    "project": "map_00.tiled-project",
+    "property.type": "terra_firma::screens::gameplay_screen::TileInfo",
+    "recentFiles": [
+    ],
+    "tileset.embedInMap": true
+}

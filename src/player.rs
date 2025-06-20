@@ -52,7 +52,7 @@ fn setup(
             ..default()
         },
         animation_config,
-        RigidBody::Dynamic,
+        RigidBody::Kinematic,
         Collider::rectangle(sprite_size.x as f32, sprite_size.y as f32),
         Transform::from_xyz(0., 0., PLAYER_Z_IDX).with_scale(Vec3::splat(PLAYER_SCALE)),
     ));
