@@ -38,6 +38,7 @@ fn setup(mut cmd: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
+/// Adds colliders to the map
 fn add_colliders(mut _cmd: Commands) {}
 
 /// Switches to the main screen.

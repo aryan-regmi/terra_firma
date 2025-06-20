@@ -229,6 +229,8 @@ pub fn process_loaded_maps(
                         let offset_x = layer.offset_x;
                         let offset_y = layer.offset_y;
 
+                        // FIXME: Add Object reading too! Map data contai
+
                         let tiled::LayerType::Tiles(tile_layer) = layer.layer_type() else {
                             info!(
                                 "Skipping layer {} because only tile layers are supported.",
