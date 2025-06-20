@@ -30,9 +30,13 @@ pub fn plugin(app: &mut App) {
             ),
             animation::stop_animation::<Player>.run_if(
                 input_just_released(KeyCode::KeyW)
-                    .or(input_just_released(KeyCode::KeyA))
-                    .or(input_just_released(KeyCode::KeyS))
-                    .or(input_just_released(KeyCode::KeyD)),
+                    .xor(input_just_released(KeyCode::KeyA))
+                    .xor(input_just_released(KeyCode::KeyS))
+                    .xor(input_just_released(KeyCode::KeyD))
+                    .and(not(input_pressed(KeyCode::KeyW)
+                        .or(input_pressed(KeyCode::KeyA))
+                        .or(input_pressed(KeyCode::KeyS))
+                        .or(input_pressed(KeyCode::KeyD)))),
             ),
         )
             .run_if(in_state(Screen::Gameplay)),
@@ -49,7 +53,7 @@ pub fn setup(
     let num_rows = 1;
     let num_cols = 4;
     let sprite_size = UVec2::splat(32);
-    let fps = 10.;
+    let fps = 20.;
     let layout = TextureAtlasLayout::from_grid(sprite_size, num_cols, num_rows, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let animation_config = AnimationConfig::new(0, 3, fps, TimerMode::Once);

@@ -8,7 +8,8 @@ pub fn start_animation<S: Component>(mut animation: Single<&mut AnimationConfig,
 
 // Restarts the animation.
 pub fn stop_animation<S: Component>(mut animation: Single<&mut AnimationConfig, With<S>>) {
-    animation.frame_timer = AnimationConfig::timer_from_fps(animation.fps, TimerMode::Once);
+    // animation.frame_timer = AnimationConfig::timer_from_fps(animation.fps, TimerMode::Once);
+    animation.frame_timer = Timer::new(Duration::ZERO, TimerMode::Once);
 }
 
 #[derive(Component)]
