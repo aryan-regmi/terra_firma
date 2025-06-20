@@ -41,8 +41,6 @@ fn setup(
     ));
 }
 
-// TODO: Make this procedurally generated!
-//
 /// Spawns the background mesh.
 fn background_mesh(
     asset_server: Res<AssetServer>,
