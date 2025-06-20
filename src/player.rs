@@ -13,10 +13,10 @@ const PLAYER_SPEED: f32 = 200.0;
 
 /// Marker component for the player.
 #[derive(Component)]
-pub struct Player;
+pub(crate) struct Player;
 
 /// Add the player systems to the app.
-pub fn add_systems(app: &mut App) {
+pub(crate) fn add_systems(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), setup);
     app.add_systems(Update, update_position.run_if(in_state(Screen::Gameplay)));
     update_animations(app);

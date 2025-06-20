@@ -2,7 +2,8 @@ use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::widget}
 
 use crate::screens::Screen;
 
-pub fn plugin(app: &mut App) {
+/// Bundles the systems of the `Main` screen.
+pub(crate) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Main), setup);
     app.add_systems(
         Update,

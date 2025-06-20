@@ -11,6 +11,7 @@ fn main() {
         .run();
 }
 
+/// Spawns the main camera.
 fn spawn_camera(mut cmd: Commands) {
     cmd.spawn(Camera2d);
 }

@@ -9,20 +9,18 @@ use bevy::{
     prelude::*,
 };
 
+/// The Z-Index of the background.
 const BACKGROUND_Z_IDX: f32 = 0.;
 
-pub fn plugin(app: &mut App) {
-    app.add_systems(
-        OnEnter(Screen::Gameplay),
-        // (setup, player::setup).run_if(in_state(Screen::Gameplay)),
-        setup,
-    );
+/// Bundles the systems of the `Gameplay` screen.
+pub(crate) fn plugin(app: &mut App) {
+    app.add_systems(OnEnter(Screen::Gameplay), setup);
+    app.add_systems(OnExit(Screen::Gameplay), despawn_player);
     app.add_systems(
         Update,
         enter_main_screen.run_if(input_just_pressed(KeyCode::Escape)),
     );
     player::add_systems(app);
-    app.add_systems(OnExit(Screen::Gameplay), despawn_player);
 }
 
 /// Marker component for the background mesh.
