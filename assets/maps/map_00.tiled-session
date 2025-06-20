@@ -4,12 +4,16 @@
         "width": 2
     },
     "activeFile": "map_00.tmx",
+    "automapping.whileDrawing": false,
     "expandedProjectPaths": [
         "raw",
         "."
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
+        ":/automap-tiles.tsx": {
+            "scaleInDock": 1
+        },
         "map_00.tmx": {
             "scale": 0.75,
             "selectedLayer": 0,
@@ -21,15 +25,21 @@
         "raw/map_00_tileset.tsx": {
             "scaleInDock": 1,
             "scaleInEditor": 1
+        },
+        "raw/objects_tileset_00.tsx": {
+            "scaleInEditor": 1
         }
     },
-    "last.imagePath": "/home/aryan/Documents/Dev/Rust/terra_firma/assets/external/Tech Dungeon Roguelite - Asset Pack (DEMO)",
+    "last.exportedFilePath": "/home/aryan/Documents/Dev/Rust/terra_firma/assets/maps",
+    "last.imagePath": "/home/aryan/Documents/Dev/Rust/terra_firma/assets/external/Tech Dungeon Roguelite - Asset Pack (DEMO)/Players",
+    "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
     "openFiles": [
         "map_00.tmx"
     ],
     "project": "map_00.tiled-project",
     "recentFiles": [
+        "raw/objects_tileset_00.tsx",
         "map_00.tmx",
         "raw/map_00_tileset.tsx"
     ],

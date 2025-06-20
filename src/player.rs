@@ -1,3 +1,4 @@
+use avian2d::prelude::*;
 use bevy::{
     input::common_conditions::{input_just_pressed, input_just_released, input_pressed},
     prelude::*,
@@ -51,6 +52,8 @@ fn setup(
             ..default()
         },
         animation_config,
+        RigidBody::Dynamic,
+        Collider::rectangle(sprite_size.x as f32, sprite_size.y as f32),
         Transform::from_xyz(0., 0., PLAYER_Z_IDX).with_scale(Vec3::splat(PLAYER_SCALE)),
     ));
 }

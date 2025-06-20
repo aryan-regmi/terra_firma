@@ -1,5 +1,9 @@
+use avian2d::prelude::*;
 use bevy::prelude::*;
-use bevy_ecs_tiled::TiledMapPlugin;
+use bevy_ecs_tiled::{
+    prelude::{TiledPhysicsAvianBackend, TiledPhysicsPlugin},
+    TiledMapPlugin,
+};
 use terra_firma::screens::{self};
 
 fn main() {
@@ -12,6 +16,8 @@ fn main() {
                     ..default()
                 }),
             TiledMapPlugin::default(),
+            TiledPhysicsPlugin::<TiledPhysicsAvianBackend>::default(),
+            PhysicsPlugins::default().with_length_unit(100.0),
             screens::plugin,
         ))
         .add_systems(Startup, spawn_camera)

@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="12">
- <editorsettings>
-  <export target="map_01.tmx" format="tmx"/>
- </editorsettings>
  <tileset firstgid="1" source="raw/map_00_tileset.tsx"/>
  <tileset firstgid="852" source="raw/objects_tileset_00.tsx"/>
  <layer id="2" name="Floors" width="30" height="20">
@@ -54,6 +51,6 @@
 </data>
  </layer>
  <objectgroup id="3" name="Things">
-  <object id="9" gid="852" x="396.75" y="266.875" width="32" height="32"/>
+  <object id="9" gid="852" x="391.75" y="253.25" width="32" height="32"/>
  </objectgroup>
 </map>

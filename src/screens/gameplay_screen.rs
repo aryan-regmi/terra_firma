@@ -5,6 +5,8 @@ use crate::{
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_ecs_tiled::prelude::*;
 
+const MAP_SCALE: f32 = 2.0;
+
 /// Bundles the systems of the `Gameplay` screen.
 pub(crate) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), setup);
@@ -22,12 +24,12 @@ struct BackgroundMesh;
 
 /// Setups up the camera and background mesh.
 fn setup(mut cmd: Commands, asset_server: Res<AssetServer>) {
-    let map_handle: Handle<TiledMap> = asset_server.load("maps/map_00.tmx");
+    let map_handle: Handle<TiledMap> = asset_server.load("maps/map_01.tmx");
     cmd.spawn((
         StateScoped(Screen::Gameplay),
         TiledMapHandle(map_handle),
         TilemapAnchor::Center,
-        Transform::default().with_scale(Vec3::splat(1.2)),
+        Transform::default().with_scale(Vec3::splat(MAP_SCALE)),
     ));
 }
 
