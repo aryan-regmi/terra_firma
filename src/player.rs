@@ -15,35 +15,15 @@ const PLAYER_SPEED: f32 = 200.0;
 #[derive(Component)]
 pub struct Player;
 
+/// Add the player systems to the app.
 pub fn add_systems(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), setup);
-    app.add_systems(
-        Update,
-        (
-            update,
-            animation::execute_animations,
-            animation::start_animation::<Player>.run_if(
-                input_just_pressed(KeyCode::KeyW)
-                    .or(input_just_pressed(KeyCode::KeyA))
-                    .or(input_just_pressed(KeyCode::KeyS))
-                    .or(input_just_pressed(KeyCode::KeyD)),
-            ),
-            animation::stop_animation::<Player>.run_if(
-                input_just_released(KeyCode::KeyW)
-                    .xor(input_just_released(KeyCode::KeyA))
-                    .xor(input_just_released(KeyCode::KeyS))
-                    .xor(input_just_released(KeyCode::KeyD))
-                    .and(not(input_pressed(KeyCode::KeyW)
-                        .or(input_pressed(KeyCode::KeyA))
-                        .or(input_pressed(KeyCode::KeyS))
-                        .or(input_pressed(KeyCode::KeyD)))),
-            ),
-        )
-            .run_if(in_state(Screen::Gameplay)),
-    );
+    app.add_systems(Update, update_position.run_if(in_state(Screen::Gameplay)));
+    update_animations(app);
 }
 
-pub fn setup(
+/// Create and spawn the player.
+fn setup(
     mut cmd: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
@@ -74,7 +54,8 @@ pub fn setup(
     ));
 }
 
-pub fn update(
+/// Updates the player's position.
+fn update_position(
     time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut player_position: Single<&mut Transform, With<Player>>,
@@ -115,4 +96,31 @@ pub fn update(
         player_position.translation.y + y_direction * PLAYER_SPEED * time.delta_secs();
     player_position.translation.x = updated_transform_x.clamp(left_bound, right_bound);
     player_position.translation.y = updated_transform_y.clamp(top_bound, bottom_bound);
+}
+
+/// Updates animations for the player.
+fn update_animations(app: &mut App) {
+    app.add_systems(
+        Update,
+        (
+            animation::execute_animations,
+            animation::start_animation::<Player>.run_if(
+                input_just_pressed(KeyCode::KeyW)
+                    .or(input_just_pressed(KeyCode::KeyA))
+                    .or(input_just_pressed(KeyCode::KeyS))
+                    .or(input_just_pressed(KeyCode::KeyD)),
+            ),
+            animation::stop_animation::<Player>.run_if(
+                input_just_released(KeyCode::KeyW)
+                    .xor(input_just_released(KeyCode::KeyA))
+                    .xor(input_just_released(KeyCode::KeyS))
+                    .xor(input_just_released(KeyCode::KeyD))
+                    .and(not(input_pressed(KeyCode::KeyW)
+                        .or(input_pressed(KeyCode::KeyA))
+                        .or(input_pressed(KeyCode::KeyS))
+                        .or(input_pressed(KeyCode::KeyD)))),
+            ),
+        )
+            .run_if(in_state(Screen::Gameplay)),
+    );
 }
