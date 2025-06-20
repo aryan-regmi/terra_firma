@@ -608,23 +608,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_ecs_tiled"
-version = "0.7.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96f26f6163d06c3e5575ad864d89bdeb58642e19f238d9b3c3ae68a02d0a9043"
-dependencies = [
- "avian2d",
- "bevy",
- "bevy_ecs_tilemap",
- "futures-lite",
- "log",
- "serde",
- "serde_json",
- "thiserror 2.0.12",
- "tiled",
-]
-
-[[package]]
 name = "bevy_ecs_tilemap"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4138,16 +4121,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_regex"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8136f1a4ea815d7eac4101cfd0b16dc0cb5e1fe1b8609dfd728058656b7badf"
-dependencies = [
- "regex",
- "serde",
-]
-
-[[package]]
 name = "sharded-slab"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4368,8 +4341,8 @@ version = "0.1.0"
 dependencies = [
  "avian2d",
  "bevy",
- "bevy_ecs_tiled",
  "bevy_ecs_tilemap",
+ "tiled",
 ]
 
 [[package]]
@@ -4429,10 +4402,6 @@ checksum = "963ef63fa3552ead705617d9f42de2b076c48a15f780e4d1c95dd52e9362a700"
 dependencies = [
  "base64 0.22.1",
  "flate2",
- "regex",
- "serde",
- "serde_json",
- "serde_regex",
  "xml-rs",
  "zstd",
 ]

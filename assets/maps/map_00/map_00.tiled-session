@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "",
+    "activeFile": "main.tmx",
     "expandedProjectPaths": [
     ],
     "file.lastUsedOpenFilter": "All Files (*)",
@@ -11,8 +11,17 @@
         "": {
             "scaleInDock": 3
         },
+        "main.tmx": {
+            "scale": 1,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 467,
+                "y": 432
+            }
+        },
         "main.tmx#map_00_tileset": {
-            "dynamicWrapping": false
+            "dynamicWrapping": false,
+            "scaleInDock": 1
         }
     },
     "last.exportedFilePath": "/home/aryan/Documents/Dev/Rust/terra_firma/assets/maps/map_00",
@@ -21,10 +30,12 @@
     "map.lastUsedExportFilter": "All Files (*)",
     "map.lastUsedFormat": "tmx",
     "openFiles": [
+        "main.tmx"
     ],
     "project": "map_00.tiled-project",
     "property.type": "terra_firma::screens::gameplay_screen::TileInfo",
     "recentFiles": [
+        "main.tmx"
     ],
     "tileset.embedInMap": true
 }
