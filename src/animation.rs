@@ -43,7 +43,6 @@ pub fn execute_animations(
     time: Res<Time>,
     mut animation_info: Query<(&mut AnimationConfig, &mut Sprite)>,
 ) {
-    // let (ref mut config, ref mut sprite) = &mut *animation_info;
     for (mut config, mut sprite) in &mut animation_info {
         // We track how long the current sprite has been displayed for
         config.frame_timer.tick(time.delta());

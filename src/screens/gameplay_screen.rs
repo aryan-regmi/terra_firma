@@ -21,7 +21,7 @@ pub fn plugin(app: &mut App) {
         Update,
         enter_main_screen.run_if(input_just_pressed(KeyCode::Escape)),
     );
-    player::plugin(app);
+    player::add_systems(app);
     app.add_systems(OnExit(Screen::Gameplay), despawn_player);
 }
 

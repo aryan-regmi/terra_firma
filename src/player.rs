@@ -15,7 +15,7 @@ const PLAYER_SPEED: f32 = 200.0;
 #[derive(Component)]
 pub struct Player;
 
-pub fn plugin(app: &mut App) {
+pub fn add_systems(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), setup);
     app.add_systems(
         Update,
