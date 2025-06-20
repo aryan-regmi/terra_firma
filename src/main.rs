@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_ecs_tiled::TiledMapPlugin;
 use terra_firma::screens::{self};
 
 fn main() {
@@ -10,6 +11,7 @@ fn main() {
                     watch_for_changes_override: Some(true),
                     ..default()
                 }),
+            TiledMapPlugin::default(),
             screens::plugin,
         ))
         .add_systems(Startup, spawn_camera)

@@ -10,6 +10,7 @@ use crate::{
 
 const PLAYER_Z_IDX: f32 = 1.0;
 const PLAYER_SPEED: f32 = 200.0;
+const PLAYER_SCALE: f32 = 2.0;
 
 /// Marker component for the player.
 #[derive(Component)]
@@ -50,7 +51,7 @@ fn setup(
             ..default()
         },
         animation_config,
-        Transform::from_xyz(0., 0., PLAYER_Z_IDX).with_scale(Vec3::splat(3.0)),
+        Transform::from_xyz(0., 0., PLAYER_Z_IDX).with_scale(Vec3::splat(PLAYER_SCALE)),
     ));
 }
 
