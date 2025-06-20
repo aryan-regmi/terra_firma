@@ -14,22 +14,14 @@ const BACKGROUND_Z_IDX: f32 = 0.;
 pub fn plugin(app: &mut App) {
     app.add_systems(
         OnEnter(Screen::Gameplay),
-        (setup, player::setup).run_if(in_state(Screen::Gameplay)),
+        // (setup, player::setup).run_if(in_state(Screen::Gameplay)),
+        setup,
     );
     app.add_systems(
         Update,
-        (
-            player::update,
-            player::animate_player.run_if(
-                input_just_pressed(KeyCode::KeyW)
-                    .or(input_just_pressed(KeyCode::KeyA))
-                    .or(input_just_pressed(KeyCode::KeyS))
-                    .or(input_just_pressed(KeyCode::KeyD)),
-            ),
-            enter_main_screen.run_if(input_just_pressed(KeyCode::Escape)),
-        )
-            .run_if(in_state(Screen::Gameplay)),
+        enter_main_screen.run_if(input_just_pressed(KeyCode::Escape)),
     );
+    player::plugin(app);
     app.add_systems(OnExit(Screen::Gameplay), despawn_player);
 }
 

@@ -1,4 +1,12 @@
-use bevy::prelude::*;
+use bevy::{
+    input::common_conditions::{input_just_pressed, input_just_released, input_pressed},
+    prelude::*,
+};
+
+use crate::{
+    animation::{self, AnimationConfig},
+    screens::Screen,
+};
 
 const PLAYER_Z_IDX: f32 = 1.0;
 const PLAYER_SPEED: f32 = 200.0;
@@ -7,24 +15,60 @@ const PLAYER_SPEED: f32 = 200.0;
 #[derive(Component)]
 pub struct Player;
 
-#[derive(Debug, Component)]
-pub enum SpriteType {
-    First,
-    Second,
+pub fn plugin(app: &mut App) {
+    app.add_systems(OnEnter(Screen::Gameplay), setup);
+    app.add_systems(
+        Update,
+        (
+            update,
+            animation::execute_animations,
+            animation::start_animation::<Player>.run_if(
+                input_just_pressed(KeyCode::KeyW)
+                    .or(input_just_pressed(KeyCode::KeyA))
+                    .or(input_just_pressed(KeyCode::KeyS))
+                    .or(input_just_pressed(KeyCode::KeyD)),
+            ),
+            animation::stop_animation::<Player>.run_if(
+                input_just_released(KeyCode::KeyW)
+                    .or(input_just_released(KeyCode::KeyA))
+                    .or(input_just_released(KeyCode::KeyS))
+                    .or(input_just_released(KeyCode::KeyD)),
+            ),
+        )
+            .run_if(in_state(Screen::Gameplay)),
+    );
 }
 
-pub fn setup(mut cmd: Commands, asset_server: Res<AssetServer>) {
+pub fn setup(
+    mut cmd: Commands,
+    asset_server: Res<AssetServer>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+) {
+    // Setup sprite
+    let texture = asset_server.load("tileset/character-sprite-sheet.png");
+    let num_rows = 1;
+    let num_cols = 4;
+    let sprite_size = UVec2::splat(32);
+    let fps = 10.;
+    let layout = TextureAtlasLayout::from_grid(sprite_size, num_cols, num_rows, None, None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+    let animation_config = AnimationConfig::new(0, 3, fps, TimerMode::Once);
+
     // Spawn character
     cmd.spawn((
         Player,
-        SpriteType::First,
-        Sprite::from_image(asset_server.load("tileset/moving-char1.png")),
-        Transform::from_xyz(0., 0., PLAYER_Z_IDX).with_scale(Vec3::splat(1.2)),
+        Sprite {
+            image: texture.clone(),
+            texture_atlas: Some(TextureAtlas {
+                layout: texture_atlas_layout.clone(),
+                index: animation_config.first_sprite_index,
+            }),
+            ..default()
+        },
+        animation_config,
+        Transform::from_xyz(0., 0., PLAYER_Z_IDX).with_scale(Vec3::splat(3.0)),
     ));
 }
-
-// TODO: Add animations!
-//  - Change sprite when the character is moved!
 
 pub fn update(
     time: Res<Time>,
