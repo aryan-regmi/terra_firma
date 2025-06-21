@@ -7,8 +7,6 @@ use crate::{
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 
-const MAP_SCALE: f32 = 2.0;
-
 /// Marker component for the background mesh.
 #[derive(Component)]
 struct BackgroundMesh;
@@ -32,7 +30,7 @@ fn setup(mut cmd: Commands, asset_server: Res<AssetServer>) {
         StateScoped(Screen::Gameplay),
         helper::TiledMapBundle {
             tiled_map: map_handle,
-            transform: Transform::default().with_scale(Vec3::splat(MAP_SCALE)),
+            // transform: Transform::default().with_scale(Vec3::splat(MAP_SCALE)),
             ..default()
         },
     ));

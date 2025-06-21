@@ -2,7 +2,9 @@ use std::io::{Cursor, ErrorKind};
 use std::path::Path;
 use std::sync::Arc;
 
+use avian2d::prelude::*;
 use bevy::log::{info, warn};
+use bevy::math::Vec3;
 use bevy::{
     asset::{io::Reader, AssetLoader, AssetPath},
     platform::collections::HashMap,
@@ -13,6 +15,12 @@ use bevy::{
     reflect::TypePath,
 };
 use bevy_ecs_tilemap::prelude::*;
+
+const MAP_SCALE: f32 = 2.0;
+
+/// A marker component for objects that can be collided with.
+#[derive(Component, Default, Debug)]
+pub struct TiledColliderObject;
 
 #[derive(Default)]
 pub struct TiledMapPlugin;
@@ -147,7 +155,6 @@ impl AssetLoader for TiledLoader {
     }
 }
 
-// TODO: Add custom properties
 pub fn process_loaded_maps(
     mut commands: Commands,
     mut map_events: EventReader<AssetEvent<TiledMap>>,
@@ -291,6 +298,7 @@ pub fn process_loaded_maps(
                                 let mapped_x = x as i32;
                                 let mapped_y = mapped_y as i32;
 
+                                // Handles the tile layer
                                 let mut handle_tile_layer = |layer_data: tiled::FiniteTileLayer<
                                     '_,
                                 >| {
@@ -337,22 +345,171 @@ pub fn process_loaded_maps(
                                     }
                                 };
 
-                                // NOTE: HERE
+                                // Handles the object layer
+                                let handle_object_layer = |object_data: &tiled::ObjectData| {
+                                    let object_tile_data = match object_data.tile_data() {
+                                        Some(d) => d,
+                                        None => {
+                                            return None;
+                                        }
+                                    };
+
+                                    let texture_index = match tilemap_texture {
+                                        TilemapTexture::Single(_) => object_tile_data.id(),
+                                        _ => unreachable!(),
+                                    };
+
+                                    // Transform TMX coords into bevy coords.
+                                    let (x, y) = {
+                                        let x = (object_data.x / tiled_map.map.width as f32) as u32;
+                                        let y =
+                                            (object_data.y / tiled_map.map.height as f32) as u32;
+                                        (x, y)
+                                    };
+                                    let tile_pos = TilePos { x, y };
+
+                                    let collider_type = if let Some(collider_type_value) =
+                                        object_data.properties.get("collider_type")
+                                    {
+                                        if let tiled::PropertyValue::StringValue(
+                                            collider_type_string,
+                                        ) = collider_type_value
+                                        {
+                                            Some(match collider_type_string.as_str() {
+                                                "Dynamic" => RigidBody::Dynamic,
+                                                "Static" => RigidBody::Static,
+                                                "Kinematic" => RigidBody::Kinematic,
+                                                _ => unreachable!(),
+                                            })
+                                        } else {
+                                            None
+                                        }
+                                    } else {
+                                        None
+                                    };
+
+                                    let hitbox = {
+                                        let raw_hitbox = if let Some(hitbox_value) =
+                                            object_data.properties.get("hitbox")
+                                        {
+                                            if let tiled::PropertyValue::ClassValue {
+                                                properties,
+                                                ..
+                                            } = hitbox_value
+                                            {
+                                                let width = if let Some(width) =
+                                                    properties.get("width")
+                                                {
+                                                    if let tiled::PropertyValue::FloatValue(width) =
+                                                        width
+                                                    {
+                                                        Some(width)
+                                                    } else {
+                                                        None
+                                                    }
+                                                } else {
+                                                    None
+                                                };
+
+                                                let height = if let Some(height) =
+                                                    properties.get("height")
+                                                {
+                                                    if let tiled::PropertyValue::FloatValue(
+                                                        height,
+                                                    ) = height
+                                                    {
+                                                        Some(height)
+                                                    } else {
+                                                        None
+                                                    }
+                                                } else {
+                                                    None
+                                                };
+
+                                                (width, height)
+                                            } else {
+                                                (None, None)
+                                            }
+                                        } else {
+                                            (None, None)
+                                        };
+
+                                        let (width, height) = raw_hitbox;
+                                        if width.is_some() && height.is_some() {
+                                            (width.unwrap(), height.unwrap())
+                                        } else if width.is_some() && height.is_none() {
+                                            (width.unwrap(), width.unwrap())
+                                        } else if width.is_none() && height.is_some() {
+                                            (height.unwrap(), height.unwrap())
+                                        } else {
+                                            (
+                                                &(tileset.tile_width as f32),
+                                                &(tileset.tile_height as f32),
+                                            )
+                                        }
+                                    };
+
+                                    let tile_entity = (
+                                        TileBundle {
+                                            position: tile_pos,
+                                            tilemap_id: TilemapId(layer_entity),
+                                            texture_index: TileTextureIndex(texture_index),
+                                            flip: TileFlip {
+                                                x: object_tile_data.flip_h,
+                                                y: object_tile_data.flip_v,
+                                                d: object_tile_data.flip_d,
+                                            },
+                                            ..Default::default()
+                                        },
+                                        TiledColliderObject,
+                                        collider_type.unwrap_or_else(|| RigidBody::Static),
+                                        Collider::rectangle(*hitbox.0, *hitbox.1),
+                                    );
+
+                                    Some((tile_pos, tile_entity))
+                                };
+
                                 match layer_data {
-                                    (Some(layer_data), None) => {
-                                        if !handle_tile_layer(layer_data) {
+                                    (Some(tile_layer), None) => {
+                                        if !handle_tile_layer(tile_layer) {
                                             continue;
                                         }
                                     }
-                                    (None, Some(object_data)) => {
-                                        continue;
-                                    }
-                                    (Some(layer_data), Some(object_data)) => {
-                                        if !handle_tile_layer(layer_data) {
-                                            continue;
+
+                                    (None, Some(object_layer)) => {
+                                        let objects = object_layer.object_data();
+                                        for object_data in objects {
+                                            if let Some((tile_pos, tile_entity)) =
+                                                handle_object_layer(object_data)
+                                            {
+                                                let tile_entity = commands.spawn(tile_entity).id();
+                                                tile_storage.set(&tile_pos, tile_entity);
+                                            }
                                         }
                                     }
-                                    (None, None) => todo!(),
+
+                                    (Some(tile_layer), Some(object_layer)) => {
+                                        // Handle tile layer
+                                        if !handle_tile_layer(tile_layer) {
+                                            continue;
+                                        }
+
+                                        // Handle object layer
+                                        {
+                                            let objects = object_layer.object_data();
+                                            for object_data in objects {
+                                                if let Some((tile_pos, tile_entity)) =
+                                                    handle_object_layer(object_data)
+                                                {
+                                                    let tile_entity =
+                                                        commands.spawn(tile_entity).id();
+                                                    tile_storage.set(&tile_pos, tile_entity);
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    (None, None) => continue,
                                 }
                             }
                         }
@@ -365,7 +522,8 @@ pub fn process_loaded_maps(
                             tile_size,
                             spacing: tile_spacing,
                             anchor: TilemapAnchor::Center,
-                            transform: Transform::from_xyz(offset_x, -offset_y, layer_index as f32),
+                            transform: Transform::from_xyz(offset_x, -offset_y, layer_index as f32)
+                                .with_scale(Vec3::splat(MAP_SCALE)),
                             map_type,
                             render_settings: *render_settings,
                             ..Default::default()

@@ -15,8 +15,8 @@
             "scale": 1,
             "selectedLayer": 1,
             "viewCenter": {
-                "x": 467,
-                "y": 432
+                "x": 464,
+                "y": 304
             }
         },
         "main.tmx#map_00_tileset": {
@@ -34,7 +34,7 @@
         "main.tmx"
     ],
     "project": "map_00.tiled-project",
-    "property.type": "terra_firma::screens::gameplay_screen::TileInfo",
+    "property.type": "Hitbox",
     "recentFiles": [
         "main.tmx"
     ],

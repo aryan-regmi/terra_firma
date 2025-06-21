@@ -14,6 +14,6 @@ pub mod helper {
 // TODO: Add loader to load all assets in the beginning!
 //  - Handle when asset isn't fully loaded
 //
-// TODO: Add collisons to map!
-//
 // TODO: Add animation using bevy_ecs_tilemap
+//
+// TODO: Add all `scale` constants as resources
