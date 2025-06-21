@@ -22,6 +22,7 @@ const MAP_SCALE: f32 = 2.0;
 #[derive(Component, Default, Debug)]
 pub struct TiledColliderObject;
 
+/// Handles all systems for creating a map from `Tiled`.
 #[derive(Default)]
 pub struct TiledMapPlugin;
 
@@ -33,6 +34,7 @@ impl Plugin for TiledMapPlugin {
     }
 }
 
+/// The map loaded by the `TiledLoader`.
 #[derive(TypePath, Asset)]
 pub struct TiledMap {
     pub map: tiled::Map,
@@ -46,9 +48,11 @@ pub struct TiledLayersStorage {
     pub storage: HashMap<u32, Entity>,
 }
 
+/// Handle for the tiled map.
 #[derive(Component, Default)]
 pub struct TiledMapHandle(pub Handle<TiledMap>);
 
+/// Bundles all components required for a `Tiled` map.
 #[derive(Default, Bundle)]
 pub struct TiledMapBundle {
     pub tiled_map: TiledMapHandle,
@@ -80,6 +84,7 @@ impl tiled::ResourceReader for BytesResourceReader {
     }
 }
 
+/// Loads and deserializes a map from `Tiled` (or any map with the `.tmx` extension).
 pub struct TiledLoader;
 
 impl AssetLoader for TiledLoader {

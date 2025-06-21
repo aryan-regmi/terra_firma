@@ -30,7 +30,6 @@ fn setup(mut cmd: Commands, asset_server: Res<AssetServer>) {
         StateScoped(Screen::Gameplay),
         helper::TiledMapBundle {
             tiled_map: map_handle,
-            // transform: Transform::default().with_scale(Vec3::splat(MAP_SCALE)),
             ..default()
         },
     ));
