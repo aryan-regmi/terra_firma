@@ -21,7 +21,8 @@
         },
         "main.tmx#map_00_tileset": {
             "dynamicWrapping": false,
-            "scaleInDock": 1
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         }
     },
     "last.exportedFilePath": "/home/aryan/Documents/Dev/Rust/terra_firma/assets/maps/map_00",

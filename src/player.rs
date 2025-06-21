@@ -9,7 +9,7 @@ use crate::{
     screens::Screen,
 };
 
-const PLAYER_Z_IDX: f32 = 1.0;
+const PLAYER_Z_IDX: f32 = 100.0;
 const PLAYER_SPEED: f32 = 200.0;
 const PLAYER_SCALE: f32 = 2.0;
 

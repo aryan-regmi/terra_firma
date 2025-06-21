@@ -147,6 +147,7 @@ impl AssetLoader for TiledLoader {
     }
 }
 
+// TODO: Add custom properties
 pub fn process_loaded_maps(
     mut commands: Commands,
     mut map_events: EventReader<AssetEvent<TiledMap>>,
@@ -199,7 +200,6 @@ pub fn process_loaded_maps(
                             commands.entity(*tile).despawn()
                         }
                     }
-                    // commands.entity(*layer_entity).despawn_recursive();
                 }
 
                 // The TilemapBundle requires that all tile images come exclusively from a single
@@ -229,22 +229,32 @@ pub fn process_loaded_maps(
                         let offset_x = layer.offset_x;
                         let offset_y = layer.offset_y;
 
-                        // FIXME: Add Object reading too! Map data contai
+                        let layer_data = {
+                            match layer.layer_type() {
+                                tiled::LayerType::Tiles(tile_layer) => {
+                                    if let tiled::TileLayer::Finite(layer_data) = tile_layer {
+                                        (Some(layer_data), None)
+                                    } else {
+                                        info!(
+                                    "Skipping layer {} because only finite layers are supported.",
+                                    layer.id()
+                                );
+                                        continue;
+                                    }
+                                }
 
-                        let tiled::LayerType::Tiles(tile_layer) = layer.layer_type() else {
-                            info!(
-                                "Skipping layer {} because only tile layers are supported.",
+                                tiled::LayerType::Objects(object_layer) => {
+                                    (None, Some(object_layer))
+                                }
+
+                                _ => {
+                                    info!(
+                                "Skipping layer {} because only tile and object layers are supported.",
                                 layer.id()
                             );
-                            continue;
-                        };
-
-                        let tiled::TileLayer::Finite(layer_data) = tile_layer else {
-                            info!(
-                                "Skipping layer {} because only finite layers are supported.",
-                                layer.id()
-                            );
-                            continue;
+                                    continue;
+                                }
+                            }
                         };
 
                         let map_size = TilemapSize {
@@ -281,43 +291,69 @@ pub fn process_loaded_maps(
                                 let mapped_x = x as i32;
                                 let mapped_y = mapped_y as i32;
 
-                                let layer_tile = match layer_data.get_tile(mapped_x, mapped_y) {
-                                    Some(t) => t,
-                                    None => {
-                                        continue;
+                                let mut handle_tile_layer = |layer_data: tiled::FiniteTileLayer<
+                                    '_,
+                                >| {
+                                    if let Some(layer_tile) =
+                                        layer_data.get_tile(mapped_x, mapped_y)
+                                    {
+                                        if tileset_index != layer_tile.tileset_index() {
+                                            return false;
+                                        }
+
+                                        let layer_tile_data =
+                                            match layer_data.get_tile_data(mapped_x, mapped_y) {
+                                                Some(d) => d,
+                                                None => {
+                                                    return false;
+                                                }
+                                            };
+
+                                        let texture_index = match tilemap_texture {
+                                            TilemapTexture::Single(_) => layer_tile.id(),
+                                            _ => unreachable!(),
+                                        };
+
+                                        let tile_pos = TilePos { x, y };
+
+                                        let tile_entity = commands
+                                            .spawn(TileBundle {
+                                                position: tile_pos,
+                                                tilemap_id: TilemapId(layer_entity),
+                                                texture_index: TileTextureIndex(texture_index),
+                                                flip: TileFlip {
+                                                    x: layer_tile_data.flip_h,
+                                                    y: layer_tile_data.flip_v,
+                                                    d: layer_tile_data.flip_d,
+                                                },
+                                                ..Default::default()
+                                            })
+                                            .id();
+
+                                        tile_storage.set(&tile_pos, tile_entity);
+                                        true
+                                    } else {
+                                        true
                                     }
                                 };
-                                if tileset_index != layer_tile.tileset_index() {
-                                    continue;
-                                }
-                                let layer_tile_data =
-                                    match layer_data.get_tile_data(mapped_x, mapped_y) {
-                                        Some(d) => d,
-                                        None => {
+
+                                // NOTE: HERE
+                                match layer_data {
+                                    (Some(layer_data), None) => {
+                                        if !handle_tile_layer(layer_data) {
                                             continue;
                                         }
-                                    };
-
-                                let texture_index = match tilemap_texture {
-                                    TilemapTexture::Single(_) => layer_tile.id(),
-                                    _ => unreachable!(),
-                                };
-
-                                let tile_pos = TilePos { x, y };
-                                let tile_entity = commands
-                                    .spawn(TileBundle {
-                                        position: tile_pos,
-                                        tilemap_id: TilemapId(layer_entity),
-                                        texture_index: TileTextureIndex(texture_index),
-                                        flip: TileFlip {
-                                            x: layer_tile_data.flip_h,
-                                            y: layer_tile_data.flip_v,
-                                            d: layer_tile_data.flip_d,
-                                        },
-                                        ..Default::default()
-                                    })
-                                    .id();
-                                tile_storage.set(&tile_pos, tile_entity);
+                                    }
+                                    (None, Some(object_data)) => {
+                                        continue;
+                                    }
+                                    (Some(layer_data), Some(object_data)) => {
+                                        if !handle_tile_layer(layer_data) {
+                                            continue;
+                                        }
+                                    }
+                                    (None, None) => todo!(),
+                                }
                             }
                         }
 
