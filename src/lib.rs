@@ -2,11 +2,26 @@ pub mod animation;
 pub mod button;
 pub mod player;
 pub mod screens;
-
-mod tiled;
+pub mod tiled;
 
 pub mod helper {
-    pub use crate::tiled::*;
+    use bevy::prelude::*;
+
+    /// Component for a name.
+    #[derive(Component, PartialEq, Eq, Default, Debug)]
+    pub struct Name(pub(crate) String);
+
+    #[derive(Resource)]
+    pub struct CurrentMap(pub Name);
+
+    #[allow(unused)]
+    #[derive(Debug, Default)]
+    pub struct Bounds {
+        pub left: f32,
+        pub right: f32,
+        pub top: f32,
+        pub bottom: f32,
+    }
 }
 
 // TODO: Add egui inspector plugin!

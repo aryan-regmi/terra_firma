@@ -18,7 +18,7 @@ struct BackgroundMesh;
 pub(crate) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), setup);
     app.add_systems(OnExit(Screen::Gameplay), despawn_player);
-    app.add_plugins((helper::TiledMapPlugin, TilemapPlugin));
+    app.add_plugins((crate::tiled::TiledMapPlugin, TilemapPlugin));
     app.add_systems(
         Update,
         enter_main_screen.run_if(input_just_pressed(KeyCode::Escape)),
@@ -30,10 +30,10 @@ pub(crate) fn plugin(app: &mut App) {
 fn setup(mut cmd: Commands, asset_server: Res<AssetServer>) {
     let mut projection = OrthographicProjection::default_2d();
     projection.scaling_mode = bevy::render::camera::ScalingMode::WindowSize;
-    let map_handle = helper::TiledMapHandle(asset_server.load("maps/map_00/main.tmx"));
+    let map_handle = crate::tiled::TiledMapHandle(asset_server.load("maps/map_00/main.tmx"));
     cmd.spawn((
         StateScoped(Screen::Gameplay),
-        helper::TiledMapBundle {
+        crate::tiled::TiledMapBundle {
             name: helper::Name("Main".into()),
             tiled_map: map_handle,
             transform: Transform::default().with_scale(Vec3::splat(MAP_SCALE)),

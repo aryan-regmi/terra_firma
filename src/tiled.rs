@@ -16,6 +16,8 @@ use bevy::{
 };
 use bevy_ecs_tilemap::prelude::*;
 
+use crate::helper::Name;
+
 const MAP_SCALE: f32 = 2.0;
 
 /// A marker component for objects that can be collided with.
@@ -51,10 +53,6 @@ pub struct TiledLayersStorage {
 /// Handle for the tiled map.
 #[derive(Component, Default)]
 pub struct TiledMapHandle(pub Handle<TiledMap>);
-
-/// Component for a name.
-#[derive(Component, PartialEq, Eq, Default, Debug)]
-pub struct Name(pub(crate) String);
 
 /// Bundles all components required for a `Tiled` map.
 #[derive(Default, Bundle)]

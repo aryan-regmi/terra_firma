@@ -6,6 +6,7 @@ use bevy::{
 
 use crate::{
     animation::{self, AnimationConfig},
+    helper::{Bounds, CurrentMap},
     screens::Screen,
 };
 
@@ -14,9 +15,6 @@ const PLAYER_Z_IDX: f32 = 100.0;
 
 /// Player movement speed factor.
 const PLAYER_SPEED: f32 = 200.0;
-
-/// Camera movement speed factor.
-const CAMERA_SPEED: f32 = 0.75 * PLAYER_SPEED;
 
 /// How quickly should the camera snap to the desired location.
 const CAMERA_DECAY_RATE: f32 = 2.;
@@ -27,18 +25,6 @@ const PLAYER_SCALE: f32 = 2.0;
 /// Marker component for the player.
 #[derive(Component)]
 pub(crate) struct Player;
-
-#[derive(Resource)]
-struct CurrentMap(crate::helper::Name);
-
-#[allow(unused)]
-#[derive(Debug, Default)]
-struct Bounds {
-    left: f32,
-    right: f32,
-    top: f32,
-    bottom: f32,
-}
 
 /// Add the player systems to the app.
 pub(crate) fn add_systems(app: &mut App) {
@@ -90,9 +76,9 @@ fn setup(
 /// Claculates the bounds of the current map.
 fn calculate_bounds(
     current_map: Res<CurrentMap>,
-    maps: Res<Assets<crate::helper::TiledMap>>,
+    maps: Res<Assets<crate::tiled::TiledMap>>,
     window: Single<&Window>,
-    tilemaps: Query<(&crate::helper::Name, &crate::helper::TiledMapHandle)>,
+    tilemaps: Query<(&crate::helper::Name, &crate::tiled::TiledMapHandle)>,
 ) -> Bounds {
     let mut bounds = Bounds::default();
     for (name, tilemap) in tilemaps {
@@ -145,10 +131,10 @@ fn move_player(
     time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     current_map: Res<CurrentMap>,
-    maps: Res<Assets<crate::helper::TiledMap>>,
+    maps: Res<Assets<crate::tiled::TiledMap>>,
     mut player_position: Single<&mut Transform, With<Player>>,
     window: Single<&Window>,
-    tilemaps: Query<(&crate::helper::Name, &crate::helper::TiledMapHandle)>,
+    tilemaps: Query<(&crate::helper::Name, &crate::tiled::TiledMapHandle)>,
 ) {
     let bounds = calculate_bounds(current_map, maps, window, tilemaps);
 
@@ -214,19 +200,14 @@ fn add_animation_systems(app: &mut App) {
 
 /// Makes the camera follow the player.
 fn move_camera(
-    mut camera_query: Single<
-        (&Camera, &mut Transform, &GlobalTransform),
-        (With<Camera2d>, Without<Player>),
-    >,
+    mut camera: Single<&mut Transform, (With<Camera2d>, Without<Player>)>,
     player: Single<&Transform, (With<Player>, Without<Camera2d>)>,
     time: Res<Time>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
     current_map: Res<CurrentMap>,
-    maps: Res<Assets<crate::helper::TiledMap>>,
+    maps: Res<Assets<crate::tiled::TiledMap>>,
     window: Single<&Window>,
-    tilemaps: Query<(&crate::helper::Name, &crate::helper::TiledMapHandle)>,
+    tilemaps: Query<(&crate::helper::Name, &crate::tiled::TiledMapHandle)>,
 ) {
-    let (camera, ref mut camera_transform, camera_global_transform) = *camera_query;
     let bounds = {
         let bounds = calculate_bounds(current_map, maps, window, tilemaps);
         Bounds {
@@ -237,29 +218,16 @@ fn move_camera(
         }
     };
 
-    if camera_transform.translation.x < bounds.left {
-        camera_transform.translation.x = bounds.left;
-    }
-    if camera_transform.translation.x > bounds.right {
-        camera_transform.translation.x = bounds.right;
-    }
-    if camera_transform.translation.y < bounds.bottom {
-        camera_transform.translation.y = bounds.bottom;
-    }
-    if camera_transform.translation.y > bounds.top {
-        camera_transform.translation.y = bounds.top;
-    }
-
     let Vec3 { x, y, .. } = player.translation;
-    let direction = Vec3::new(x, y, camera_transform.translation.z);
+    let direction = Vec3::new(x, y, camera.translation.z);
 
     // Applies a smooth effect to camera movement using stable interpolation
     // between the camera position and the player position on the x and y axes.
-    camera_transform
+    camera
         .translation
         .smooth_nudge(&direction, CAMERA_DECAY_RATE, time.delta_secs());
-    camera_transform.translation = camera_transform.translation.clamp(
-        Vec3::new(bounds.left, bounds.bottom, camera_transform.translation.z),
-        Vec3::new(bounds.right, bounds.top, camera_transform.translation.z),
+    camera.translation = camera.translation.clamp(
+        Vec3::new(bounds.left, bounds.bottom, camera.translation.z),
+        Vec3::new(bounds.right, bounds.top, camera.translation.z),
     );
 }
