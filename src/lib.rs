@@ -17,3 +17,20 @@ pub mod helper {
 // TODO: Add animation using bevy_ecs_tilemap
 //
 // TODO: Add all `scale` constants as resources
+//
+// TODO: Replace external assests with custom ones!
+//
+// TODO: Make camera follow player
+//
+// TODO: Add `Zone { name: string }` property to tiles -> Adds a Zone component
+//  - Can query for this component to change maps when a new zone is entered
+//  - Setup maps the same way as screens
+//
+// TODO: Add `Zone { name: string }` property to tiles -> Adds a Zone component
+//  - Can query for this component to change maps when a new zone is entered
+//  - Setup maps the same way as screens
+//
+//
+// TODO: Add `Animated { sprite_sheet, start_idx, end_idx, duration }` property to tiles -> flags
+// for animation
+//  - Add to the tiled plugin, so map tiles can be individually animated

@@ -35,7 +35,7 @@ impl Plugin for TiledMapPlugin {
 }
 
 /// The map loaded by the `TiledLoader`.
-#[derive(TypePath, Asset)]
+#[derive(TypePath, Asset, Debug)]
 pub struct TiledMap {
     pub map: tiled::Map,
 
@@ -52,9 +52,14 @@ pub struct TiledLayersStorage {
 #[derive(Component, Default)]
 pub struct TiledMapHandle(pub Handle<TiledMap>);
 
+/// Component for a name.
+#[derive(Component, PartialEq, Eq, Default, Debug)]
+pub struct Name(pub(crate) String);
+
 /// Bundles all components required for a `Tiled` map.
 #[derive(Default, Bundle)]
 pub struct TiledMapBundle {
+    pub name: Name,
     pub tiled_map: TiledMapHandle,
     pub storage: TiledLayersStorage,
     pub transform: Transform,
@@ -519,6 +524,10 @@ pub fn process_loaded_maps(
                             }
                         }
 
+                        let transform =
+                            Transform::from_xyz(offset_x, -offset_y, layer_index as f32)
+                                .with_scale(Vec3::splat(MAP_SCALE));
+
                         commands.entity(layer_entity).insert(TilemapBundle {
                             grid_size,
                             size: map_size,
@@ -527,8 +536,7 @@ pub fn process_loaded_maps(
                             tile_size,
                             spacing: tile_spacing,
                             anchor: TilemapAnchor::Center,
-                            transform: Transform::from_xyz(offset_x, -offset_y, layer_index as f32)
-                                .with_scale(Vec3::splat(MAP_SCALE)),
+                            transform,
                             map_type,
                             render_settings: *render_settings,
                             ..Default::default()

@@ -7,13 +7,16 @@ use crate::{
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_ecs_tilemap::prelude::*;
 
+/// Map scale factor.
+const MAP_SCALE: f32 = 2.0;
+
 /// Marker component for the background mesh.
 #[derive(Component)]
 struct BackgroundMesh;
 
 /// Bundles the systems of the `Gameplay` screen.
 pub(crate) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(Screen::Gameplay), (setup, add_colliders).chain());
+    app.add_systems(OnEnter(Screen::Gameplay), setup);
     app.add_systems(OnExit(Screen::Gameplay), despawn_player);
     app.add_plugins((helper::TiledMapPlugin, TilemapPlugin));
     app.add_systems(
@@ -25,18 +28,19 @@ pub(crate) fn plugin(app: &mut App) {
 
 /// Setups up the camera and spawns the map.
 fn setup(mut cmd: Commands, asset_server: Res<AssetServer>) {
+    let mut projection = OrthographicProjection::default_2d();
+    projection.scaling_mode = bevy::render::camera::ScalingMode::WindowSize;
     let map_handle = helper::TiledMapHandle(asset_server.load("maps/map_00/main.tmx"));
     cmd.spawn((
         StateScoped(Screen::Gameplay),
         helper::TiledMapBundle {
+            name: helper::Name("Main".into()),
             tiled_map: map_handle,
+            transform: Transform::default().with_scale(Vec3::splat(MAP_SCALE)),
             ..default()
         },
     ));
 }
-
-/// Adds colliders to the map
-fn add_colliders(mut _cmd: Commands) {}
 
 /// Switches to the main screen.
 fn enter_main_screen(mut next_state: ResMut<NextState<Screen>>) {

@@ -9,19 +9,37 @@ use crate::{
     screens::Screen,
 };
 
+/// Determines the layer the player is drawn on.
 const PLAYER_Z_IDX: f32 = 100.0;
+
+/// Player movement speed factor.
 const PLAYER_SPEED: f32 = 200.0;
+
+/// Player sprite scale factor.
 const PLAYER_SCALE: f32 = 2.0;
+
+/// Map scale factor.
+const MAP_SCALE: f32 = PLAYER_SCALE;
+
+/// How quickly should the camera snap to the desired location.
+const CAMERA_DECAY_RATE: f32 = 2.;
 
 /// Marker component for the player.
 #[derive(Component)]
 pub(crate) struct Player;
 
+#[derive(Resource)]
+struct CurrentMap(crate::helper::Name);
+
 /// Add the player systems to the app.
 pub(crate) fn add_systems(app: &mut App) {
+    app.insert_resource(CurrentMap(crate::helper::Name("Main".into())));
     app.add_systems(OnEnter(Screen::Gameplay), setup);
-    app.add_systems(Update, update_position.run_if(in_state(Screen::Gameplay)));
-    update_animations(app);
+    app.add_systems(
+        Update,
+        (move_player, move_camera).run_if(in_state(Screen::Gameplay)),
+    );
+    add_animation_systems(app);
 }
 
 /// Create and spawn the player.
@@ -59,51 +77,106 @@ fn setup(
 }
 
 /// Updates the player's position.
-fn update_position(
+fn move_player(
     time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
+    current_map: Res<CurrentMap>,
+    maps: Res<Assets<crate::helper::TiledMap>>,
     mut player_position: Single<&mut Transform, With<Player>>,
     window: Single<&Window>,
+    tilemaps: Query<(&crate::helper::Name, &crate::helper::TiledMapHandle)>,
 ) {
-    let (left_bound, right_bound, top_bound, bottom_bound) = {
-        let window_size = window.resolution.size();
-        (
-            -window_size.x / 2.,
-            window_size.x / 2.,
-            -window_size.y / 2.,
-            window_size.y / 2.,
-        )
+    #[allow(unused)]
+    #[derive(Debug, Default)]
+    struct Bounds {
+        left: f32,
+        right: f32,
+        top: f32,
+        bottom: f32,
+    }
+
+    let bounds = {
+        let mut bounds = Bounds::default();
+        for (name, tilemap) in tilemaps {
+            if *name == current_map.0 {
+                let tiled_map = maps.get(&tilemap.0);
+                if let Some(tiled_map) = tiled_map {
+                    let (map_width, map_height) =
+                        (tiled_map.map.width as f32, tiled_map.map.height as f32);
+                    let (tile_width, tile_height) = (
+                        tiled_map.map.tile_width as f32,
+                        tiled_map.map.tile_height as f32,
+                    );
+                    let right_bound = map_width * tile_width;
+                    let top_bound = map_height * tile_height;
+                    let left_bound = -right_bound;
+                    let bottom_bound = -top_bound;
+                    bounds = Bounds {
+                        left: left_bound,
+                        right: right_bound,
+                        top: top_bound,
+                        bottom: bottom_bound,
+                    };
+                    break;
+                } else {
+                    let window_size = window.size();
+                    bounds = Bounds {
+                        left: -window_size.x,
+                        right: window_size.x,
+                        top: window_size.y,
+                        bottom: -window_size.y,
+                    };
+                    break;
+                }
+            } else {
+                let window_size = window.size();
+                bounds = Bounds {
+                    left: -window_size.x,
+                    right: window_size.x,
+                    top: window_size.y,
+                    bottom: -window_size.y,
+                };
+                break;
+            }
+        }
+        bounds
     };
 
     // Handle input
-    let mut x_direction = 0.0;
-    let mut y_direction = 0.0;
-    {
-        if keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp) {
-            y_direction += 1.0;
+    let mut direction = Vec2::ZERO;
+    if keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp) {
+        if player_position.translation.y < bounds.top {
+            direction.y += 1.0;
         }
-        if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
-            x_direction -= 1.0;
+    }
+    if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
+        if player_position.translation.x > bounds.left {
+            direction.x -= 1.0;
         }
-        if keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown) {
-            y_direction -= 1.0;
+    }
+    if keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown) {
+        if player_position.translation.y > bounds.bottom {
+            direction.y -= 1.0;
         }
-        if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
-            x_direction += 1.0;
+    }
+    if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
+        if player_position.translation.x < bounds.right {
+            direction.x += 1.0;
         }
     }
 
-    // Update player transform
-    let updated_transform_x =
-        player_position.translation.x + x_direction * PLAYER_SPEED * time.delta_secs();
-    let updated_transform_y =
-        player_position.translation.y + y_direction * PLAYER_SPEED * time.delta_secs();
-    player_position.translation.x = updated_transform_x.clamp(left_bound, right_bound);
-    player_position.translation.y = updated_transform_y.clamp(top_bound, bottom_bound);
+    // Progressively update the player's position over time. Normalize the
+    // direction vector to prevent it from exceeding a magnitude of 1 when
+    // moving diagonally.
+    let move_delta = direction.normalize_or_zero() * PLAYER_SPEED * time.delta_secs();
+    let updated_translation = player_position.translation + move_delta.extend(0.);
+    player_position.translation = updated_translation;
 }
 
-/// Updates animations for the player.
-fn update_animations(app: &mut App) {
+/// Adds the animation systems for the player.
+fn add_animation_systems(app: &mut App) {
+    // FIXME: Replace run_if's with keyboard_input handling in the function instead!
+    //  - Fix animations etc by checking youtube video in `Bevy` playlist
     app.add_systems(
         Update,
         (
@@ -126,5 +199,31 @@ fn update_animations(app: &mut App) {
             ),
         )
             .run_if(in_state(Screen::Gameplay)),
+    );
+}
+
+/// Makes the camera follow the player.
+fn move_camera(
+    mut camera: Single<&mut Transform, (With<Camera2d>, Without<Player>)>,
+    player: Single<&Transform, (With<Player>, Without<Camera2d>)>,
+    time: Res<Time>,
+    window: Single<&Window>,
+) {
+    let Vec3 { x, y, .. } = player.translation;
+    let direction = Vec3::new(x, y, camera.translation.z);
+
+    let (left_bound, right_bound, top_bound, bottom_bound) = {
+        let window_size = window.size();
+        (-window_size.x, window_size.x, -window_size.y, window_size.y)
+    };
+
+    // Applies a smooth effect to camera movement using stable interpolation
+    // between the camera position and the player position on the x and y axes.
+    camera
+        .translation
+        .smooth_nudge(&direction, CAMERA_DECAY_RATE, time.delta_secs());
+    camera.translation = camera.translation.clamp(
+        Vec3::new(left_bound, top_bound, 0.0),
+        Vec3::new(right_bound, bottom_bound, 0.0),
     );
 }
