@@ -1,6 +1,7 @@
 use avian2d::prelude::*;
 use bevy::{
     input::common_conditions::{input_just_pressed, input_just_released, input_pressed},
+    math::AspectRatio,
     prelude::*,
 };
 
@@ -15,11 +16,11 @@ const PLAYER_Z_IDX: f32 = 100.0;
 /// Player movement speed factor.
 const PLAYER_SPEED: f32 = 200.0;
 
+/// Camera movement speed factor.
+const CAMERA_SPEED: f32 = 0.75 * PLAYER_SPEED;
+
 /// Player sprite scale factor.
 const PLAYER_SCALE: f32 = 2.0;
-
-/// How quickly should the camera snap to the desired location.
-const CAMERA_DECAY_RATE: f32 = 2.;
 
 /// Marker component for the player.
 #[derive(Component)]
@@ -43,7 +44,7 @@ pub(crate) fn add_systems(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), setup);
     app.add_systems(
         Update,
-        (move_player, move_camera_2).run_if(in_state(Screen::Gameplay)),
+        (move_player, move_camera).run_if(in_state(Screen::Gameplay)),
     );
     add_animation_systems(app);
 }
@@ -214,88 +215,63 @@ fn move_camera(
     mut camera: Single<&mut Transform, (With<Camera2d>, Without<Player>)>,
     player: Single<&Transform, (With<Player>, Without<Camera2d>)>,
     time: Res<Time>,
-    current_map: Res<CurrentMap>,
-    maps: Res<Assets<crate::helper::TiledMap>>,
-    tilemaps: Query<(&crate::helper::Name, &crate::helper::TiledMapHandle)>,
-    window: Single<&Window>,
-) {
-    let Vec3 { x, y, .. } = player.translation;
-    // let direction = Vec3::new(x, y, camera.translation.z);
-
-    // if player_position.translation.y < bounds.top {
-    //     direction.y += 1.0;
-    // }
-
-    let direction = Vec3::new(x, y, camera.translation.z);
-
-    let bounds = {
-        let mut bounds = calculate_bounds(current_map, maps, window, tilemaps);
-        bounds.left = bounds.left + CAMERA_BOUNDS.left;
-        bounds.right = bounds.right - CAMERA_BOUNDS.right;
-        bounds.top = bounds.top - CAMERA_BOUNDS.top;
-        bounds.bottom = bounds.bottom + CAMERA_BOUNDS.bottom;
-        bounds
-    };
-
-    if player.translation.y > bounds.top {
-        camera.translation.y = bounds.top;
-    }
-    if player.translation.x < bounds.left {}
-    if player.translation.y > bounds.bottom {}
-    if player.translation.x < bounds.right {}
-
-    camera
-        .translation
-        .smooth_nudge(&direction, CAMERA_DECAY_RATE, time.delta_secs());
-}
-
-fn move_camera_2(
-    mut camera: Single<&mut Transform, (With<Camera2d>, Without<Player>)>,
-    time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     current_map: Res<CurrentMap>,
     maps: Res<Assets<crate::helper::TiledMap>>,
     window: Single<&Window>,
     tilemaps: Query<(&crate::helper::Name, &crate::helper::TiledMapHandle)>,
 ) {
-    let mut bounds = calculate_bounds(current_map, maps, window, tilemaps);
-    bounds = Bounds {
-        left: 0.2 * bounds.left,
-        right: 0.2 * bounds.right,
-        top: 0.2 * bounds.top,
-        bottom: 0.2 * bounds.bottom,
+    let bounds = {
+        // let window_size = window.resolution.size();
+        // let window_scale = window.resolution.scale_factor();
+        let bounds = calculate_bounds(current_map, maps, window, tilemaps);
+        // dbg!(&bounds);
+        // let camera_bound_scale = {
+        //     let ratio = AspectRatio::try_from_pixels(window_size.x as u32, window_size.y as u32)
+        //         .unwrap_or_else(|_| AspectRatio::SIXTEEN_NINE);
+        //     let x_scale = window_size.x / bounds.right * ratio.ratio();
+        //     let y_scale = window_size.y / bounds.top * ratio.ratio();
+        //     (x_scale, y_scale)
+        // };
+        // dbg!(camera_bound_scale);
+        // Bounds {
+        //     left: camera_bound_scale.0 * bounds.left,
+        //     right: camera_bound_scale.0 * bounds.right,
+        //     top: camera_bound_scale.1 * bounds.top,
+        //     bottom: camera_bound_scale.1 * bounds.bottom,
+        // }
+        bounds
     };
+    // dbg!(&bounds);
 
     // Handle input
     let mut direction = Vec2::ZERO;
     if keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp) {
-        if camera.translation.y < bounds.top {
+        if camera.translation.y < bounds.top && player.translation.y < bounds.top {
             direction.y += 1.0;
         }
     }
     if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
-        if camera.translation.x > bounds.left {
+        if camera.translation.x > bounds.left && player.translation.x > bounds.left {
             direction.x -= 1.0;
         }
     }
     if keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown) {
-        if camera.translation.y > bounds.bottom {
+        if camera.translation.y > bounds.bottom && player.translation.y > bounds.bottom {
             direction.y -= 1.0;
         }
     }
     if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
-        if camera.translation.x < bounds.right {
+        if camera.translation.x < bounds.right && player.translation.x < bounds.right {
             direction.x += 1.0;
         }
     }
-    // info_once!("{:?}", bounds);
-    dbg!(bounds);
 
     // Progressively update the player's position over time. Normalize the
     // direction vector to prevent it from exceeding a magnitude of 1 when
     // moving diagonally.
-    let move_delta = direction.normalize_or_zero() * PLAYER_SPEED * time.delta_secs();
+    let move_delta = direction.normalize_or_zero() * CAMERA_SPEED * time.delta_secs();
     let updated_translation = camera.translation + move_delta.extend(0.);
     camera.translation = updated_translation;
-    dbg!(camera.translation);
+    // dbg!(camera.translation);
 }
