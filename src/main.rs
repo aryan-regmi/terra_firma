@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use bevy_ecs_tiled::prelude::*;
-use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
-use terra_firma::{game::GamePlugin, utils};
+use bevy_inspector_egui::bevy_egui::EguiPlugin;
+use terra_firma::prelude::*;
 
 fn main() {
     App::new()
@@ -16,7 +15,6 @@ fn main() {
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
-        .add_plugins(WorldInspectorPlugin::new())
-        .add_plugins(GamePlugin)
+        .add_plugins(GamePlugin { inspector: false })
         .run();
 }

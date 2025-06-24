@@ -1,41 +1,29 @@
 use bevy::prelude::*;
 use bevy_ecs_tiled::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-use crate::utils;
+use crate::{screens, utils};
 
 /// Manages resources and systems for the entire game.
 #[derive(Debug, Default)]
-pub struct GamePlugin;
+pub struct GamePlugin {
+    pub inspector: bool,
+}
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<utils::Tilemaps>()
-            .register_type::<utils::Tilemaps>()
-            .register_type::<utils::ChunkSize>()
-            .add_plugins(TiledMapPlugin::default())
-            .add_systems(Startup, startup);
+            .register_type::<utils::Tilemaps>();
+        app.register_type::<utils::ChunkSize>();
+        if self.inspector {
+            app.add_plugins(WorldInspectorPlugin::new());
+        }
+        app.add_plugins((TiledMapPlugin::default(), screens::ScreenPlugin));
+        app.add_systems(Startup, spawn_camera);
     }
 }
 
-fn startup(mut cmd: Commands, asset_server: Res<AssetServer>, mut maps: ResMut<utils::Tilemaps>) {
+fn spawn_camera(mut cmd: Commands) {
     // Spawn a Bevy 2D camera
     cmd.spawn(Camera2d);
-
-    // Load a map asset and retrieve the corresponding handle
-    let tilemap = utils::Tilemap {
-        name: utils::Name("Main".into()),
-        handle: asset_server.load("maps/map_00/main.tmx"),
-        chunk_size: utils::ChunkSize {
-            width: 32.0,
-            height: 32.0,
-        },
-    };
-
-    // Spawn a new entity with this handle
-    cmd.spawn((
-        TiledMapHandle(tilemap.handle.clone_weak()),
-        TilemapAnchor::Center,
-        TiledWorldChunking::new(tilemap.chunk_size.width, tilemap.chunk_size.height),
-    ));
-    maps.0.push(tilemap);
 }
