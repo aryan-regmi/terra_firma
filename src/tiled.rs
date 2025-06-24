@@ -5,6 +5,7 @@ use std::sync::Arc;
 use avian2d::prelude::*;
 use bevy::log::{info, warn};
 use bevy::math::Vec3;
+use bevy::state::state::OnEnter;
 use bevy::{
     asset::{io::Reader, AssetLoader, AssetPath},
     platform::collections::HashMap,
@@ -16,7 +17,7 @@ use bevy::{
 };
 use bevy_ecs_tilemap::prelude::*;
 
-use crate::helper::Name;
+use crate::helper::{self, CurrentMap, MapBounds, Name};
 
 const MAP_SCALE: f32 = 2.0;
 
@@ -30,6 +31,7 @@ pub struct TiledMapPlugin;
 
 impl Plugin for TiledMapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(MapBounds::default());
         app.init_asset::<TiledMap>()
             .register_asset_loader(TiledLoader)
             .add_systems(Update, process_loaded_maps);

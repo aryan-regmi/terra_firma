@@ -6,7 +6,7 @@ use bevy::{
 
 use crate::{
     animation::{self, AnimationConfig},
-    helper::{Bounds, CurrentMap},
+    helper::{self, CurrentMap, MapBounds},
     screens::Screen,
 };
 
@@ -28,7 +28,6 @@ pub(crate) struct Player;
 
 /// Add the player systems to the app.
 pub(crate) fn add_systems(app: &mut App) {
-    app.insert_resource(CurrentMap(crate::helper::Name("Main".into())));
     app.add_systems(OnEnter(Screen::Gameplay), setup);
     app.add_systems(
         Update,
@@ -71,72 +70,14 @@ fn setup(
     ));
 }
 
-// FIXME: Do this in setup!
-//
-/// Claculates the bounds of the current map.
-fn calculate_bounds(
-    current_map: Res<CurrentMap>,
-    maps: Res<Assets<crate::tiled::TiledMap>>,
-    window: Single<&Window>,
-    tilemaps: Query<(&crate::helper::Name, &crate::tiled::TiledMapHandle)>,
-) -> Bounds {
-    let mut bounds = Bounds::default();
-    for (name, tilemap) in tilemaps {
-        if *name == current_map.0 {
-            let tiled_map = maps.get(&tilemap.0);
-            if let Some(tiled_map) = tiled_map {
-                let (map_width, map_height) =
-                    (tiled_map.map.width as f32, tiled_map.map.height as f32);
-                let (tile_width, tile_height) = (
-                    tiled_map.map.tile_width as f32,
-                    tiled_map.map.tile_height as f32,
-                );
-                let right_bound = map_width * tile_width;
-                let top_bound = map_height * tile_height;
-                let left_bound = -right_bound;
-                let bottom_bound = -top_bound;
-                bounds = Bounds {
-                    left: left_bound,
-                    right: right_bound,
-                    top: top_bound,
-                    bottom: bottom_bound,
-                };
-                break;
-            } else {
-                let window_size = window.size();
-                bounds = Bounds {
-                    left: -window_size.x,
-                    right: window_size.x,
-                    top: window_size.y,
-                    bottom: -window_size.y,
-                };
-                break;
-            }
-        } else {
-            let window_size = window.size();
-            bounds = Bounds {
-                left: -window_size.x,
-                right: window_size.x,
-                top: window_size.y,
-                bottom: -window_size.y,
-            };
-            break;
-        }
-    }
-    bounds
-}
-
 /// Updates the player's position.
 fn move_player(
     time: Res<Time>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    current_map: Res<CurrentMap>,
-    maps: Res<Assets<crate::tiled::TiledMap>>,
     mut player_position: Single<&mut Transform, With<Player>>,
-    window: Single<&Window>,
-    tilemaps: Query<(&crate::helper::Name, &crate::tiled::TiledMapHandle)>,
+    bounds: Res<MapBounds>,
 ) {
-    let bounds = calculate_bounds(current_map, maps, window, tilemaps);
+    let bounds = &bounds.0;
 
     // Handle input
     let mut direction = Vec2::ZERO;
@@ -203,20 +144,9 @@ fn move_camera(
     mut camera: Single<&mut Transform, (With<Camera2d>, Without<Player>)>,
     player: Single<&Transform, (With<Player>, Without<Camera2d>)>,
     time: Res<Time>,
-    current_map: Res<CurrentMap>,
-    maps: Res<Assets<crate::tiled::TiledMap>>,
-    window: Single<&Window>,
-    tilemaps: Query<(&crate::helper::Name, &crate::tiled::TiledMapHandle)>,
+    bounds: Res<MapBounds>,
 ) {
-    let bounds = {
-        let bounds = calculate_bounds(current_map, maps, window, tilemaps);
-        Bounds {
-            left: bounds.left / 2.,
-            right: bounds.right / 2.,
-            top: bounds.top / 2.,
-            bottom: bounds.bottom / 2.,
-        }
-    };
+    let bounds = &bounds.0;
 
     let Vec3 { x, y, .. } = player.translation;
     let direction = Vec3::new(x, y, camera.translation.z);

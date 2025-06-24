@@ -1,5 +1,5 @@
 use crate::{
-    helper,
+    helper::{self, CalculateBoundsId, CurrentMap, MapBounds},
     player::{self, Player},
     screens::Screen,
 };
@@ -16,14 +16,19 @@ struct BackgroundMesh;
 
 /// Bundles the systems of the `Gameplay` screen.
 pub(crate) fn plugin(app: &mut App) {
+    let calculate_bounds_id = app.register_system(helper::calculate_bounds);
+    app.insert_resource(CurrentMap(helper::Name("Main".into())));
+    app.insert_resource(CalculateBoundsId(calculate_bounds_id));
+
     app.add_systems(OnEnter(Screen::Gameplay), setup);
     app.add_systems(OnExit(Screen::Gameplay), despawn_player);
-    app.add_plugins((crate::tiled::TiledMapPlugin, TilemapPlugin));
     app.add_systems(
         Update,
         enter_main_screen.run_if(input_just_pressed(KeyCode::Escape)),
     );
     player::add_systems(app);
+
+    app.add_plugins((crate::tiled::TiledMapPlugin, TilemapPlugin));
 }
 
 /// Setups up the camera and spawns the map.
@@ -49,5 +54,6 @@ fn enter_main_screen(mut next_state: ResMut<NextState<Screen>>) {
 
 /// Removes the player from the game.
 fn despawn_player(mut cmd: Commands, player: Single<Entity, With<Player>>) {
+    // TODO: Despawn maps too!
     cmd.entity(*player).despawn();
 }
