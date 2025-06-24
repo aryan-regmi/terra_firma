@@ -1,19 +1,22 @@
-use avian2d::prelude::*;
 use bevy::prelude::*;
-use terra_firma::screens::{self};
+use bevy_ecs_tiled::prelude::*;
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
+use terra_firma::{game::GamePlugin, utils};
 
 fn main() {
     App::new()
-        .add_plugins((
-            DefaultPlugins.set(ImagePlugin::default_nearest()),
-            PhysicsPlugins::default().with_length_unit(100.0),
-            screens::plugin,
-        ))
-        .add_systems(Startup, spawn_camera)
+        .add_plugins(
+            DefaultPlugins
+                .set(ImagePlugin::default_nearest())
+                .set(AssetPlugin {
+                    watch_for_changes_override: Some(true),
+                    ..default()
+                }),
+        )
+        .add_plugins(EguiPlugin {
+            enable_multipass_for_primary_context: true,
+        })
+        .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(GamePlugin)
         .run();
-}
-
-/// Spawns the main camera.
-fn spawn_camera(mut cmd: Commands) {
-    cmd.spawn(Camera2d);
 }
