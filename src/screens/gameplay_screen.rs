@@ -3,12 +3,12 @@ use bevy_ecs_tiled::{map::TiledMapHandle, prelude::*};
 
 use crate::{
     screens::Screen,
-    utils::{self, MapSpawnedEvent, SpawningMapEvent},
+    utils::{self, MapLoadedEvent, MapLoadingEvent},
 };
 
 const MAP_NAME: &str = "Main";
 
-pub struct GameplayScreenPlugin;
+pub(crate) struct GameplayScreenPlugin;
 
 impl Plugin for GameplayScreenPlugin {
     fn build(&self, app: &mut App) {
@@ -31,7 +31,7 @@ fn load_main_map(
     asset_server: Res<AssetServer>,
     mut maps: ResMut<utils::Tilemaps>,
 ) {
-    cmd.trigger(SpawningMapEvent);
+    cmd.trigger(MapLoadingEvent);
     info!("Loading {} map...", MAP_NAME);
     if let Some(tilemap) = maps.0.get(&MAP_NAME.into()) {
         // Retrieve handle and spawn a new map entity
@@ -83,5 +83,5 @@ fn switch_to_main_screen(mut next_state: ResMut<NextState<Screen>>) {
 /// Triggers `MapSpawnedEvent` when a tiled map has been loaded.
 fn map_load_observer(_: Trigger<TiledMapCreated>, mut cmd: Commands) {
     info!("{} map loaded!", MAP_NAME);
-    cmd.trigger(MapSpawnedEvent);
+    cmd.trigger(MapLoadedEvent);
 }

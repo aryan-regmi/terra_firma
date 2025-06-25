@@ -6,7 +6,7 @@ use bevy_inspector_egui::{
 
 use crate::screens::Screen;
 
-pub struct MainScreenPlugin;
+pub(crate) struct MainScreenPlugin;
 
 #[derive(Default, Resource)]
 struct UiState {

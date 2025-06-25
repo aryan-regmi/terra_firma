@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
-pub mod gameplay_screen;
-pub mod main_screen;
+pub(crate) mod gameplay_screen;
+pub(crate) mod main_screen;
 
-pub use gameplay_screen::*;
-pub use main_screen::*;
+pub(crate) use gameplay_screen::*;
+pub(crate) use main_screen::*;
 
 #[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
 #[states(scoped_entities)]
