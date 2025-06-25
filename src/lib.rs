@@ -7,3 +7,5 @@ pub mod prelude {
     pub use crate::screens::*;
     pub use crate::utils::*;
 }
+
+// TODO: Make everything private unless necessary! (`pub(crate)` instead of `pub` if needed)
