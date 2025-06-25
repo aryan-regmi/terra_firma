@@ -14,7 +14,7 @@ pub(crate) enum Screen {
     Gameplay,
 }
 
-pub struct ScreenPlugin;
+pub(crate) struct ScreenPlugin;
 
 impl Plugin for ScreenPlugin {
     fn build(&self, app: &mut App) {
