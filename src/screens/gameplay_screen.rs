@@ -31,7 +31,8 @@ impl Plugin for GameplayScreenPlugin {
                         .and(in_state(GameState::Running))
                         .and(input_just_pressed(KeyCode::Escape)),
                 ),
-            );
+            )
+            .add_systems(OnEnter(GameState::Paused), grey_out_game);
         app.add_observer(map_load_observer);
         app.add_observer(resume_game_observer);
     }
@@ -59,6 +60,15 @@ fn unload_main_map(mut cmd: Commands, maps: Query<(Entity, &utils::Name), With<T
 fn pause_game(mut game_state: ResMut<NextState<GameState>>) {
     game_state.set(GameState::Paused);
     info!("Game Paused");
+}
+
+/// Greys out the game when paused.
+fn grey_out_game(mut query: Query<&mut TiledMapHandle>) {
+    // dbg!(query.iter().len());
+    // for mut sprite in query.iter_mut() {
+    //     let color = sprite.color.clone();
+    //     sprite.color = sprite.color.mix(&color, 0.8);
+    // }
 }
 
 /// Triggers `MapSpawnedEvent` when a tiled map has been loaded.
@@ -102,7 +112,6 @@ mod menu {
                 EguiContextPass,
                 display_menu.run_if(in_state(GameState::Paused)),
             );
-            app.add_observer(close_menu_observer);
         }
     }
 
@@ -113,23 +122,20 @@ mod menu {
     ) {
         if let Some(ctx) = egui_ctxs.try_ctx_mut() {
             menu_state.set(PauseMenuState::Main);
-            egui::Window::new("Paused").show(ctx, |ui| {
-                if ui.button("Resume").clicked() {
-                    cmd.trigger(ResumeGameEvent);
-                }
-                if ui.button("Resume").clicked() {
-                    cmd.trigger(ResumeGameEvent);
-                }
-            });
+            egui::Window::new("Paused")
+                .movable(false)
+                .resizable(false)
+                .collapsible(false)
+                .show(ctx, |ui| {
+                    if ui.button("Resume").clicked() {
+                        menu_state.set(PauseMenuState::Disabled);
+                        cmd.trigger(ResumeGameEvent);
+                    }
+                    if ui.button("Settings").clicked() {
+                        // cmd.trigger(ResumeGameEvent);
+                    }
+                });
         }
-    }
-
-    /// Disables the menu when `ResumeGameEvent` is triggered.
-    fn close_menu_observer(
-        _: Trigger<ResumeGameEvent>,
-        mut menu_state: ResMut<NextState<PauseMenuState>>,
-    ) {
-        menu_state.set(PauseMenuState::Disabled);
     }
 
     #[allow(unused)]

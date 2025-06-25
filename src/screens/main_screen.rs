@@ -30,15 +30,17 @@ impl Plugin for MainScreenPlugin {
 /// Shows the main screen.
 fn display_main_screen(mut egui_ctxs: EguiContexts, mut ui_state: ResMut<MainScreenUiState>) {
     if let Some(ctx) = egui_ctxs.try_ctx_mut() {
-        egui::Area::new(egui::Id::new("Main_Screen")).show(ctx, |ui| {
-            if ui.button("Start Game").clicked() {
-                ui_state.start_game_clicked = true;
-            } else {
-                ui_state.start_game_clicked = false;
-            }
+        egui::Area::new(egui::Id::new("Main_Screen"))
+            .movable(false)
+            .show(ctx, |ui| {
+                if ui.button("Start Game").clicked() {
+                    ui_state.start_game_clicked = true;
+                } else {
+                    ui_state.start_game_clicked = false;
+                }
 
-            // TODO: Add settings, new game, load game, etc
-        });
+                // TODO: Add settings, new game, load game, etc
+            });
     }
 }
 
