@@ -48,3 +48,7 @@ pub(crate) struct MapLoadingEvent;
 /// Triggers when a tilemap has been loaded.
 #[derive(Event)]
 pub(crate) struct MapLoadedEvent;
+
+/// Triggers when the game has been resumed.
+#[derive(Event)]
+pub(crate) struct ResumeGameEvent;
