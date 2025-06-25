@@ -1,5 +1,5 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
-use bevy_ecs_tiled::{map::TiledMapHandle, prelude::*};
+use bevy_ecs_tiled::prelude::*;
 
 use crate::{
     screens::{gameplay_screen::menu::PauseMenuPlugin, Screen},
@@ -37,41 +37,10 @@ impl Plugin for GameplayScreenPlugin {
     }
 }
 
-fn load_main_map(
-    mut cmd: Commands,
-    asset_server: Res<AssetServer>,
-    mut maps: ResMut<utils::Tilemaps>,
-) {
+/// Loads the main map
+fn load_main_map(mut cmd: Commands, asset_server: Res<AssetServer>, maps: ResMut<utils::Tilemaps>) {
     cmd.trigger(MapLoadingEvent);
-    info!("Loading {} map...", MAP_NAME);
-    if let Some(tilemap) = maps.0.get(&MAP_NAME.into()) {
-        // Retrieve handle and spawn a new map entity
-        cmd.spawn((
-            utils::Name(MAP_NAME.into()),
-            TiledMapHandle(tilemap.handle.clone_weak()),
-            TilemapAnchor::Center,
-            TiledWorldChunking::new(tilemap.chunk_size.width, tilemap.chunk_size.height),
-            TiledMapMarker,
-        ));
-    } else {
-        // Load a map asset and retrieve the corresponding handle
-        let tilemap = utils::Tilemap {
-            handle: asset_server.load("maps/map_00/main.tmx"),
-            chunk_size: utils::ChunkSize {
-                width: 256.0,
-                height: 256.0,
-            },
-        };
-
-        // Spawn a new entity with the newly created handle
-        cmd.spawn((
-            utils::Name(MAP_NAME.into()),
-            TiledMapHandle(tilemap.handle.clone_weak()),
-            TilemapAnchor::Center,
-            TiledWorldChunking::new(tilemap.chunk_size.width, tilemap.chunk_size.height),
-        ));
-        maps.0.insert(MAP_NAME.into(), tilemap);
-    }
+    utils::load_map(MAP_NAME, "maps/map_00/main.tmx", cmd, asset_server, maps);
 }
 
 /// Unloads the main map.
@@ -145,6 +114,9 @@ mod menu {
         if let Some(ctx) = egui_ctxs.try_ctx_mut() {
             menu_state.set(PauseMenuState::Main);
             egui::Window::new("Paused").show(ctx, |ui| {
+                if ui.button("Resume").clicked() {
+                    cmd.trigger(ResumeGameEvent);
+                }
                 if ui.button("Resume").clicked() {
                     cmd.trigger(ResumeGameEvent);
                 }
