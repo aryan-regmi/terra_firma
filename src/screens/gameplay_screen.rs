@@ -2,12 +2,7 @@ use std::collections::HashMap;
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_ecs_tiled::prelude::*;
-use bevy_ecs_tilemap::{
-    map::TilemapTexture,
-    prelude::StandardTilemapMaterial,
-    tiles::{TileBundle, TileColor, TileStorage, TileTextureIndex},
-    TilemapBundle,
-};
+use bevy_ecs_tilemap::map::TilemapTexture;
 
 use crate::{
     screens::{gameplay_screen::menu::PauseMenuPlugin, Screen},
@@ -80,7 +75,7 @@ const GREY_FILTER: Color = Color::LinearRgba(LinearRgba {
     red: 1.,
     green: 1.,
     blue: 1.,
-    alpha: 0.8,
+    alpha: 1.0,
 });
 
 /// Adds grey filter to the game when paused.
