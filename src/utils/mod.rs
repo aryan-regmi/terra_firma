@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 use bevy_ecs_tiled::prelude::*;
+use bevy_inspector_egui::egui;
 
 /// Stores all of the tilemaps for the game.
 #[derive(Reflect, Resource, Default)]
@@ -91,4 +92,14 @@ pub(crate) fn load_map(
         ));
         maps.0.insert(map_name.into(), tilemap);
     }
+}
+
+/// Creates a button with the given label and size.
+pub(crate) fn sized_button(
+    ui: &mut egui::Ui,
+    label: &str,
+    width: f32,
+    height: f32,
+) -> egui::Response {
+    ui.add_sized((width, height), egui::Button::new(label))
 }

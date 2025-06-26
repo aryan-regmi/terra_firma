@@ -137,12 +137,12 @@ mod menu {
     use bevy::{prelude::*, window::PrimaryWindow};
     use bevy_inspector_egui::{
         bevy_egui::{EguiContextPass, EguiContexts},
-        egui,
+        egui::{self, Ui},
     };
 
     use crate::{
         screens::{GameState, Screen},
-        utils::ResumeGameEvent,
+        utils::{self, ResumeGameEvent},
     };
 
     #[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
@@ -183,6 +183,7 @@ mod menu {
                 );
                 (size, position)
             };
+
             egui::Window::new("Paused")
                 .fixed_size(window_size)
                 .current_pos(window_position)
@@ -193,15 +194,18 @@ mod menu {
                     ui.set_width(ui.available_width());
                     ui.set_height(ui.available_height());
 
-                    if ui.button("Resume").clicked() {
-                        menu_state.set(PauseMenuState::Disabled);
-                        cmd.trigger(ResumeGameEvent);
-                    }
-
-                    // if ui.button("Settings").clicked() {
-                    // }
+                    ui.vertical_centered(|ui| {
+                        if menu_button(ui, "Resume").clicked() {
+                            menu_state.set(PauseMenuState::Disabled);
+                            cmd.trigger(ResumeGameEvent);
+                        }
+                    })
                 });
         }
+    }
+
+    fn menu_button(ui: &mut egui::Ui, label: &str) -> egui::Response {
+        utils::sized_button(ui, label, ui.available_width() * 0.7, 50.0)
     }
 
     #[allow(unused)]
