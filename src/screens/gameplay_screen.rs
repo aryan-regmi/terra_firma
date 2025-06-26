@@ -134,7 +134,7 @@ fn resume_game_observer(_: Trigger<ResumeGameEvent>, mut game_state: ResMut<Next
 }
 
 mod menu {
-    use bevy::prelude::*;
+    use bevy::{prelude::*, window::PrimaryWindow};
     use bevy_inspector_egui::{
         bevy_egui::{EguiContextPass, EguiContexts},
         egui,
@@ -169,21 +169,37 @@ mod menu {
         mut cmd: Commands,
         mut egui_ctxs: EguiContexts,
         mut menu_state: ResMut<NextState<PauseMenuState>>,
+        window: Single<&Window, With<PrimaryWindow>>,
     ) {
         if let Some(ctx) = egui_ctxs.try_ctx_mut() {
             menu_state.set(PauseMenuState::Main);
+
+            let (window_size, window_position) = {
+                let window_size = window.size();
+                let size = (window_size.x * 0.5, window_size.y * 0.5);
+                let position = (
+                    (window_size.x / 2.) - (size.0 / 2.),
+                    (window_size.y / 2.) - (size.1 / 2.),
+                );
+                (size, position)
+            };
             egui::Window::new("Paused")
+                .fixed_size(window_size)
+                .current_pos(window_position)
                 .movable(false)
                 .resizable(false)
                 .collapsible(false)
                 .show(ctx, |ui| {
+                    ui.set_width(ui.available_width());
+                    ui.set_height(ui.available_height());
+
                     if ui.button("Resume").clicked() {
                         menu_state.set(PauseMenuState::Disabled);
                         cmd.trigger(ResumeGameEvent);
                     }
-                    if ui.button("Settings").clicked() {
-                        // cmd.trigger(ResumeGameEvent);
-                    }
+
+                    // if ui.button("Settings").clicked() {
+                    // }
                 });
         }
     }
