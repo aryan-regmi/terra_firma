@@ -15,6 +15,7 @@ const MAP_NAME: &str = "Main";
 #[states(scoped_entities)]
 pub(crate) enum GameState {
     #[default]
+    Started,
     Running,
     Paused,
 }
@@ -122,9 +123,14 @@ fn undo_greyed_out_game(
 }
 
 /// Triggers `MapSpawnedEvent` when a tiled map has been loaded.
-fn map_load_observer(_: Trigger<TiledMapCreated>, mut cmd: Commands) {
+fn map_load_observer(
+    _: Trigger<TiledMapCreated>,
+    mut cmd: Commands,
+    mut game_state: ResMut<NextState<GameState>>,
+) {
     info!("{} map loaded!", MAP_NAME);
     cmd.trigger(MapLoadedEvent);
+    game_state.set(GameState::Running);
 }
 
 /// Resumes the game when `ResumeGameEvent` is triggered.
@@ -137,7 +143,7 @@ mod menu {
     use bevy::{prelude::*, window::PrimaryWindow};
     use bevy_inspector_egui::{
         bevy_egui::{EguiContextPass, EguiContexts},
-        egui::{self, Ui},
+        egui::{self},
     };
 
     use crate::{
@@ -204,6 +210,7 @@ mod menu {
         }
     }
 
+    /// Creates a menu button.
     fn menu_button(ui: &mut egui::Ui, label: &str) -> egui::Response {
         utils::sized_button(ui, label, ui.available_width() * 0.7, 50.0)
     }

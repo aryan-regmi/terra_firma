@@ -9,7 +9,6 @@ bevy = { version = "0.16", features = ["dynamic_linking", "file_watcher", "asset
 bevy-inspector-egui = "0.31.0"
 bevy_ecs_tiled = "0.7.2"
 bevy_ecs_tilemap = "0.16.0"
-tiled = "0.14.0"
 
 [profile.dev]
 opt-level = 1
