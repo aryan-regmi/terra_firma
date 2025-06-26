@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_ecs_tiled::prelude::*;
 use bevy_ecs_tilemap::{
@@ -27,6 +29,7 @@ pub(crate) struct GameplayScreenPlugin;
 impl Plugin for GameplayScreenPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<GameState>();
+        app.init_resource::<OriginalTextureColors>();
         app.add_plugins(PauseMenuPlugin);
         app.add_systems(OnEnter(Screen::Gameplay), load_main_map)
             .add_systems(OnExit(Screen::Gameplay), unload_main_map)
@@ -38,7 +41,8 @@ impl Plugin for GameplayScreenPlugin {
                         .and(input_just_pressed(KeyCode::Escape)),
                 ),
             )
-            .add_systems(OnEnter(GameState::Paused), grey_out_game);
+            .add_systems(OnEnter(GameState::Paused), grey_out_game)
+            .add_systems(OnExit(GameState::Paused), undo_greyed_out_game);
         app.add_observer(map_load_observer);
         app.add_observer(resume_game_observer);
     }
@@ -68,10 +72,23 @@ fn pause_game(mut game_state: ResMut<NextState<GameState>>) {
     info!("Game Paused");
 }
 
-// FIXME: Add inverse of this to run when resumed!
-//
-/// Greys out the game when paused.
-fn grey_out_game(tile_textures: Query<&mut TilemapTexture>, mut images: ResMut<Assets<Image>>) {
+#[derive(Default, Resource)]
+struct OriginalTextureColors(HashMap<(Handle<Image>, u32, u32), Color>);
+
+/// The color to change the game screen to when paused.
+const GREY_FILTER: Color = Color::LinearRgba(LinearRgba {
+    red: 1.,
+    green: 1.,
+    blue: 1.,
+    alpha: 0.8,
+});
+
+/// Adds grey filter to the game when paused.
+fn grey_out_game(
+    tile_textures: Query<&mut TilemapTexture>,
+    mut images: ResMut<Assets<Image>>,
+    mut orginal_colors: ResMut<OriginalTextureColors>,
+) {
     for texture in tile_textures {
         let image_handles = texture.image_handles();
         for handle in image_handles {
@@ -79,23 +96,32 @@ fn grey_out_game(tile_textures: Query<&mut TilemapTexture>, mut images: ResMut<A
             for x in 0..image.width() {
                 for y in 0..image.height() {
                     if let Ok(original_color) = image.get_color_at(x, y) {
-                        let new_color = original_color.mix(
-                            &Color::LinearRgba(LinearRgba {
-                                red: 0.5,
-                                green: 0.5,
-                                blue: 0.5,
-                                alpha: 0.8,
-                            }),
-                            0.5,
-                        );
+                        orginal_colors
+                            .0
+                            .insert((handle.clone_weak(), x, y), original_color);
+                        let new_color = original_color.mix(&GREY_FILTER, 0.3);
                         image.set_color_at(x, y, new_color).unwrap_or_else(|e| {
-                            error!("Unable to change texture color: {}", e);
+                            error!("Unable to grey out texture: {}", e);
                             return;
                         });
                     }
-                    // let original_color = image.get_color_at(x, y);
                 }
             }
+        }
+    }
+}
+
+/// Removes grey filter when game is resumed.
+fn undo_greyed_out_game(
+    mut images: ResMut<Assets<Image>>,
+    orginal_colors: Res<OriginalTextureColors>,
+) {
+    for ((handle, x, y), color) in &orginal_colors.0 {
+        if let Some(image) = images.get_mut(handle) {
+            image.set_color_at(*x, *y, *color).unwrap_or_else(|e| {
+                error!("Unable to restore original color: {}", e);
+                return;
+            })
         }
     }
 }

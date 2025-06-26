@@ -15,6 +15,6 @@ fn main() {
         .add_plugins(EguiPlugin {
             enable_multipass_for_primary_context: true,
         })
-        .add_plugins(GamePlugin { inspector: true })
+        .add_plugins(GamePlugin { inspector: false })
         .run();
 }

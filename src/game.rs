@@ -7,6 +7,7 @@ use crate::{screens, utils};
 /// Manages resources and systems for the entire game.
 #[derive(Debug, Default)]
 pub struct GamePlugin {
+    /// Determines whether to show the `egui` inspector or not.
     pub inspector: bool,
 }
 
