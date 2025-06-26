@@ -1,5 +1,11 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
 use bevy_ecs_tiled::prelude::*;
+use bevy_ecs_tilemap::{
+    map::TilemapTexture,
+    prelude::StandardTilemapMaterial,
+    tiles::{TileBundle, TileColor, TileStorage, TileTextureIndex},
+    TilemapBundle,
+};
 
 use crate::{
     screens::{gameplay_screen::menu::PauseMenuPlugin, Screen},
@@ -50,7 +56,7 @@ fn load_main_map(mut cmd: Commands, asset_server: Res<AssetServer>, maps: ResMut
 /// This does **NOT** remove the map from the `Tilemaps` resources.
 fn unload_main_map(mut cmd: Commands, maps: Query<(Entity, &utils::Name), With<TiledMapMarker>>) {
     for (map, name) in maps {
-        if name.0 == "Main" {
+        if name.0 == MAP_NAME {
             cmd.entity(map).despawn();
         }
     }
@@ -62,13 +68,36 @@ fn pause_game(mut game_state: ResMut<NextState<GameState>>) {
     info!("Game Paused");
 }
 
+// FIXME: Add inverse of this to run when resumed!
+//
 /// Greys out the game when paused.
-fn grey_out_game(mut query: Query<&mut TiledMapHandle>) {
-    // dbg!(query.iter().len());
-    // for mut sprite in query.iter_mut() {
-    //     let color = sprite.color.clone();
-    //     sprite.color = sprite.color.mix(&color, 0.8);
-    // }
+fn grey_out_game(tile_textures: Query<&mut TilemapTexture>, mut images: ResMut<Assets<Image>>) {
+    for texture in tile_textures {
+        let image_handles = texture.image_handles();
+        for handle in image_handles {
+            let image = images.get_mut(handle).unwrap();
+            for x in 0..image.width() {
+                for y in 0..image.height() {
+                    if let Ok(original_color) = image.get_color_at(x, y) {
+                        let new_color = original_color.mix(
+                            &Color::LinearRgba(LinearRgba {
+                                red: 0.5,
+                                green: 0.5,
+                                blue: 0.5,
+                                alpha: 0.8,
+                            }),
+                            0.5,
+                        );
+                        image.set_color_at(x, y, new_color).unwrap_or_else(|e| {
+                            error!("Unable to change texture color: {}", e);
+                            return;
+                        });
+                    }
+                    // let original_color = image.get_color_at(x, y);
+                }
+            }
+        }
+    }
 }
 
 /// Triggers `MapSpawnedEvent` when a tiled map has been loaded.
