@@ -10,5 +10,3 @@ pub use game::GamePlugin;
 //  - Update the image like in `grey_out_game`, except bound the x and y by the `texture_rect`
 
 // TODO: Add player & physics
-//
-// TODO: Only allow pausing the game if `MapLoadedEvent` is triggered
