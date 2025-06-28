@@ -1,4 +1,5 @@
 pub(crate) mod game;
+pub(crate) mod player;
 pub(crate) mod screens;
 pub(crate) mod utils;
 

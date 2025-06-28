@@ -5,6 +5,7 @@ use bevy_ecs_tiled::prelude::*;
 use bevy_ecs_tilemap::map::TilemapTexture;
 
 use crate::{
+    player,
     screens::{gameplay_screen::menu::PauseMenuPlugin, Screen},
     utils::{self, MapLoadedEvent, MapLoadingEvent, ResumeGameEvent},
 };
@@ -26,7 +27,7 @@ impl Plugin for GameplayScreenPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<GameState>();
         app.init_resource::<OriginalTextureColors>();
-        app.add_plugins(PauseMenuPlugin);
+        app.add_plugins((PauseMenuPlugin, player::PlayerPlugin));
         app.add_systems(OnEnter(Screen::Gameplay), load_main_map)
             .add_systems(OnExit(Screen::Gameplay), unload_main_map)
             .add_systems(
