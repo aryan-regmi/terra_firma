@@ -7,7 +7,7 @@ use bevy_ecs_tilemap::map::TilemapTexture;
 use crate::{
     player,
     screens::{gameplay_screen::menu::PauseMenuPlugin, Screen},
-    utils::{self, MapLoadedEvent, MapLoadingEvent, ResumeGameEvent},
+    utils::{self, MapLoadedEvent, MapLoadingEvent, ResumeGameEvent, ReturnToMainMenuEvent},
 };
 
 const MAP_NAME: &str = "Main";
@@ -19,6 +19,7 @@ pub(crate) enum GameState {
     Started,
     Running,
     Paused,
+    Exit,
 }
 
 pub(crate) struct GameplayScreenPlugin;
@@ -45,6 +46,7 @@ impl Plugin for GameplayScreenPlugin {
         .add_systems(OnExit(GameState::Paused), undo_greyed_out_game);
         app.add_observer(map_load_observer);
         app.add_observer(resume_game_observer);
+        app.add_observer(switch_to_main_screen_observer);
     }
 }
 
@@ -74,6 +76,7 @@ fn unload_main_map(mut cmd: Commands, maps: Query<(Entity, &utils::Name), With<T
     for (map, name) in maps {
         if name.0 == MAP_NAME {
             cmd.entity(map).despawn();
+            info!("{} map unloaded!", MAP_NAME);
         }
     }
 }
@@ -155,6 +158,16 @@ fn resume_game_observer(_: Trigger<ResumeGameEvent>, mut game_state: ResMut<Next
     info!("Game resumed!");
 }
 
+/// Switches to the main menu screen.
+fn switch_to_main_screen_observer(
+    _: Trigger<ReturnToMainMenuEvent>,
+    mut screen: ResMut<NextState<Screen>>,
+    mut game_state: ResMut<NextState<GameState>>,
+) {
+    game_state.set(GameState::Exit);
+    screen.set(Screen::Main);
+}
+
 mod menu {
     use bevy::{prelude::*, window::PrimaryWindow};
     use bevy_inspector_egui::{
@@ -163,8 +176,8 @@ mod menu {
     };
 
     use crate::{
-        screens::{GameState, Screen},
-        utils::{self, ResumeGameEvent},
+        screens::GameState,
+        utils::{self, ResumeGameEvent, ReturnToMainMenuEvent},
     };
 
     #[derive(States, Debug, Hash, PartialEq, Eq, Clone, Default)]
@@ -221,6 +234,11 @@ mod menu {
                             menu_state.set(PauseMenuState::Disabled);
                             cmd.trigger(ResumeGameEvent);
                         }
+
+                        if menu_button(ui, "Main Menu").clicked() {
+                            menu_state.set(PauseMenuState::Disabled);
+                            cmd.trigger(ReturnToMainMenuEvent);
+                        }
                     })
                 });
         }
@@ -229,11 +247,5 @@ mod menu {
     /// Creates a menu button.
     fn menu_button(ui: &mut egui::Ui, label: &str) -> egui::Response {
         utils::sized_button(ui, label, ui.available_width() * 0.7, 50.0)
-    }
-
-    #[allow(unused)]
-    /// Switches to the gameplay screen.
-    fn switch_to_main_screen(mut screen: ResMut<NextState<Screen>>) {
-        screen.set(Screen::Main);
     }
 }

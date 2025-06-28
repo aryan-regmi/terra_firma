@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::{screens::GameState, utils};
+use crate::{
+    screens::{GameState, Screen},
+    utils,
+};
 
 /// Manages resources and systems for the player.
 #[derive(Debug, Default)]
@@ -12,7 +15,8 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             Update,
             utils::animate_sprite::<PlayerMarker>.run_if(in_state(GameState::Running)),
-        );
+        )
+        .add_systems(OnExit(Screen::Gameplay), despawn_player);
     }
 }
 
@@ -30,7 +34,7 @@ const PLAYER_SCALE: f32 = 2.0;
 const PLAYER_IDLE_SPRITE_NCOLS: u32 = 3;
 
 /// The time (in seconds) to run the animation for.
-const PLAYER_IDLE_ANIMATION_TIME: f32 = 0.25;
+const PLAYER_IDLE_ANIMATION_TIME: f32 = 0.15; // FIXME: Make resource so inspector can change it!
 
 fn spawn_player_observer(
     _: Trigger<utils::MapLoadedEvent>,
@@ -65,6 +69,11 @@ fn spawn_player_observer(
         Transform::default().with_scale(Vec3::splat(PLAYER_SCALE)),
         animation_config,
     ));
-
     info!("Player spawned!");
+}
+
+/// Despawns the player.
+fn despawn_player(mut cmd: Commands, player: Single<Entity, With<PlayerMarker>>) {
+    cmd.entity(*player).despawn();
+    info!("Player despawned!");
 }

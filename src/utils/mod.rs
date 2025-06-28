@@ -27,6 +27,10 @@ impl From<&str> for Name {
 #[derive(Event)]
 pub(crate) struct ResumeGameEvent;
 
+/// Triggers when returning to the main menu.
+#[derive(Event)]
+pub(crate) struct ReturnToMainMenuEvent;
+
 /// Creates a button with the given label and size.
 pub(crate) fn sized_button(
     ui: &mut egui::Ui,

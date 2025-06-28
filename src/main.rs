@@ -6,6 +6,10 @@ fn main() {
     App::new()
         .add_plugins(
             DefaultPlugins
+                .set(WindowPlugin {
+                    // close_when_requested: false,
+                    ..default()
+                })
                 .set(ImagePlugin::default_nearest())
                 .set(AssetPlugin {
                     watch_for_changes_override: Some(true),
