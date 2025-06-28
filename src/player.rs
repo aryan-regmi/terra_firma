@@ -30,7 +30,7 @@ const PLAYER_SCALE: f32 = 2.0;
 const PLAYER_IDLE_SPRITE_NCOLS: u32 = 3;
 
 /// The time (in seconds) to run the animation for.
-const PLAYER_IDLE_ANIMATION_TIME: f32 = 0.3;
+const PLAYER_IDLE_ANIMATION_TIME: f32 = 0.25;
 
 fn spawn_player_observer(
     _: Trigger<utils::MapLoadedEvent>,

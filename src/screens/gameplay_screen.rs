@@ -28,20 +28,35 @@ impl Plugin for GameplayScreenPlugin {
         app.init_state::<GameState>();
         app.init_resource::<OriginalTextureColors>();
         app.add_plugins((PauseMenuPlugin, player::PlayerPlugin));
-        app.add_systems(OnEnter(Screen::Gameplay), load_main_map)
-            .add_systems(OnExit(Screen::Gameplay), unload_main_map)
-            .add_systems(
-                Update,
-                pause_game.run_if(
-                    in_state(Screen::Gameplay)
-                        .and(in_state(GameState::Running))
-                        .and(input_just_pressed(KeyCode::Escape)),
-                ),
-            )
-            .add_systems(OnEnter(GameState::Paused), grey_out_game)
-            .add_systems(OnExit(GameState::Paused), undo_greyed_out_game);
+        app.add_systems(
+            OnEnter(Screen::Gameplay),
+            (load_main_map, setup_default_zoom).chain(),
+        )
+        .add_systems(OnExit(Screen::Gameplay), unload_main_map)
+        .add_systems(
+            Update,
+            pause_game.run_if(
+                in_state(Screen::Gameplay)
+                    .and(in_state(GameState::Running))
+                    .and(input_just_pressed(KeyCode::Escape)),
+            ),
+        )
+        .add_systems(OnEnter(GameState::Paused), grey_out_game)
+        .add_systems(OnExit(GameState::Paused), undo_greyed_out_game);
         app.add_observer(map_load_observer);
         app.add_observer(resume_game_observer);
+    }
+}
+
+/// The factor to scale the zoom by.
+const DEFAULT_ZOOM_FACTOR: f32 = 0.5;
+
+fn setup_default_zoom(mut projection: Single<&mut Projection>) {
+    match &mut **projection {
+        Projection::Orthographic(orthographic_projection) => {
+            orthographic_projection.scale = DEFAULT_ZOOM_FACTOR;
+        }
+        _ => error!("Unhandled projection type"),
     }
 }
 
