@@ -10,4 +10,6 @@ pub use game::GamePlugin;
 //  - Get TextureAtlasLayout (asset server) and TextureAtlas (query)
 //  - Update the image like in `grey_out_game`, except bound the x and y by the `texture_rect`
 
-// TODO: Add player & physics
+// TODO: Add player movement and physics!
+//
+// TODO: Zoom on scroll! -> Clamp zoom by certain amounts
