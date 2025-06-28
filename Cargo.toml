@@ -7,7 +7,7 @@ edition = "2021"
 avian2d = "0.3.1"
 bevy = { version = "0.16", features = ["dynamic_linking", "file_watcher", "asset_processor"] }
 bevy-inspector-egui = "0.31.0"
-bevy_ecs_tiled = "0.7.2"
+bevy_ecs_tiled = { version =  "0.7.2", features = ["avian"] }
 bevy_ecs_tilemap = "0.16.0"
 
 [profile.dev]

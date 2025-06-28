@@ -1,3 +1,4 @@
+use avian2d::PhysicsPlugins;
 use bevy::prelude::*;
 use bevy_ecs_tiled::prelude::*;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
@@ -19,7 +20,12 @@ impl Plugin for GamePlugin {
         if self.inspector {
             app.add_plugins(WorldInspectorPlugin::new());
         }
-        app.add_plugins((TiledMapPlugin::default(), screens::ScreenPlugin));
+        app.add_plugins((
+            TiledMapPlugin::default(),
+            screens::ScreenPlugin,
+            TiledPhysicsPlugin::<TiledPhysicsAvianBackend>::default(),
+            PhysicsPlugins::default().with_length_unit(500.0),
+        ));
         app.add_systems(Startup, spawn_camera);
     }
 }

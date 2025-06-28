@@ -762,6 +762,7 @@ version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96f26f6163d06c3e5575ad864d89bdeb58642e19f238d9b3c3ae68a02d0a9043"
 dependencies = [
+ "avian2d",
  "bevy",
  "bevy_ecs_tilemap",
  "futures-lite",
